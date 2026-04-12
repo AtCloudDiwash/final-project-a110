@@ -17,17 +17,74 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world music platforms like Spotify and TikTok mostly rely on two approaches to figure out what you might want to hear next.
 
-Some prompts to answer:
+The first is collaborative filtering, which basically says "people who liked what you liked also liked this." It looks at the behavior of millions of users (plays, skips, likes, playlist adds) and finds patterns without actually knowing anything about the songs themselves. Spotify's Discover Weekly works this way.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+The second is content-based filtering, which says "this song has similar attributes to songs you already enjoy." It looks directly at the song's features like genre, energy, and tempo and compares them to what a user prefers. TikTok mixes this with engagement signals like how long you watch a video before scrolling.
 
-You can include a simple diagram or bullet list if helpful.
+This simulator uses content-based filtering. It takes a user's taste preferences, scores every song based on how well it matches, and returns the top results.
+
+**What each Song tracks:**
+
+- genre - the musical category (pop, lofi, rock, ambient, etc.)
+- mood - the emotional tone (happy, chill, intense, relaxed, focused, moody)
+- energy - how loud and intense the song feels, on a scale from 0.0 to 1.0
+- tempo_bpm - beats per minute
+- valence - how positive or joyful the song sounds, from 0.0 (dark) to 1.0 (bright)
+- danceability - how easy it is to dance to, from 0.0 to 1.0
+- acousticness - how acoustic vs electronic the song is, from 0.0 to 1.0
+
+**What each UserProfile stores:**
+
+- favorite_genre - the genre they prefer most
+- favorite_mood - the mood they usually listen for
+- target_energy - the energy level they want (0.0 to 1.0)
+- likes_acoustic - whether they prefer acoustic sounds over electronic ones
+
+**How a song gets scored:**
+
+Each song gets a score based on how well it matches the user. Genre match is worth the most (weight 3.0) because it's the clearest signal of what someone is in the mood for. Mood match comes second (weight 2.0) since the emotional vibe matters a lot. Energy is scored by proximity (weight 2.0) meaning a song that's close to your target energy scores better than one that's very far off, using the formula 1 minus the absolute difference. Acoustic preference gets a smaller weight (1.0) as a bonus when the song's acoustic feel lines up with what the user wants.
+
+**How the final list is built:**
+
+Every song in the catalog gets scored individually. Then the list is sorted from highest to lowest score, and the top k songs are returned as recommendations.
+
+**Example user profile this system was designed around:**
+
+- favorite_genre: pop
+- favorite_mood: happy
+- target_energy: 0.8
+- likes_acoustic: False
+
+**Algorithm Recipe (exact weights):**
+
+- Genre match - +3.0 points (all or nothing, either it matches or it doesn't)
+- Mood match - +2.0 points (same, binary)
+- Energy proximity - up to +2.0 points, calculated as 2.0 times (1 minus the difference between target energy and song energy)
+- Acoustic preference - up to +1.0 points, based on how close the song's acousticness is to what the user wants
+
+The maximum a song can score is 8.0. A perfect match on genre, mood, energy, and acoustic feel all at once.
+
+**Data flow:**
+
+```mermaid
+flowchart TD
+    A[User Profile] --> C[Score each song]
+    B[songs.csv catalog] --> C
+    C --> D[Genre match adds up to 3.0]
+    D --> E[Mood match adds up to 2.0]
+    E --> F[Energy proximity adds up to 2.0]
+    F --> G[Acoustic preference adds up to 1.0]
+    G --> H[Total score for this song]
+    H --> I[Repeat for every song in catalog]
+    I --> J[Sort all scores highest to lowest]
+    J --> K[Return top K songs]
+```
+
+**Known biases to watch for:**
+
+Genre has the highest weight, which means a mediocre pop song will almost always beat a great jazz song for a user who listed pop as their favorite. The system never suggests anything outside the stated genre unless the catalog is small enough that genre matches run out. This is called a filter bubble, and it is a real problem in production recommenders too. Mood is the second biggest factor, so a song with a mismatched mood (like an intense track for a user who wants chill) gets heavily penalized even if everything else lines up.
 
 ---
 
