@@ -125,7 +125,11 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-[screenshot of terminal output]
+![Terminal output](image/1.png)
+
+![Experiment results](image/2.png)
+
+![Experiment results](image/3.png)
 
 The experiment doubled the energy weight from 2.0 to 4.0 and halved the genre weight from 3.0 to 1.5 to test whether energy is a stronger taste signal than genre.
 
