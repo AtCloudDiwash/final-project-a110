@@ -111,6 +111,10 @@ pip install -r requirements.txt
 python -m src.main
 ```
 
+**CLI output after Phase 3 implementation:**
+
+![Terminal output](image/1.png)
+
 ### Running Tests
 
 Run the starter tests with:
@@ -124,8 +128,6 @@ You can add more tests in `tests/test_recommender.py`.
 ---
 
 ## Experiments You Tried
-
-![Terminal output](image/1.png)
 
 ![Experiment results](image/2.png)
 
