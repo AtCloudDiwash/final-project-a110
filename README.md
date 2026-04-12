@@ -11,7 +11,7 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+This project builds a content-based music recommender that scores songs from an 18-track catalog against a user's taste profile and returns the top 5 matches. It supports four scoring modes, a diversity filter to avoid repetitive results, and outputs a formatted table showing each recommendation's score and the reasons behind it.
 
 ---
 
@@ -125,25 +125,24 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+[screenshot of terminal output]
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+The experiment doubled the energy weight from 2.0 to 4.0 and halved the genre weight from 3.0 to 1.5 to test whether energy is a stronger taste signal than genre.
+
+- High-Energy Pop: Sunrise City ranked first as expected (genre + mood + close energy). Block Party Anthem came in second despite being hip-hop, purely because its energy was a perfect match. The weight shift is working — a genre mismatch no longer kills a song's ranking if everything else lines up.
+- Chill Lofi: The two lofi songs ranked at the top and the acoustic bonus visibly helped. This profile produced the most accurate-feeling results.
+- Deep Intense Rock: Storm Runner (the only rock song) ranked first easily. Slots 2 through 4 were filled by EDM and metal songs, not rock — there simply aren't enough rock songs in the catalog to fill a full top 5.
+- Edge Case (classical + high energy): Morning Sonata, the only classical song, did not appear in the top 5 at all. Its energy of 0.18 is so far from the user's target of 0.90 that the genre match could not compensate. Storm Runner ranked first instead. The system had no way to handle the contradiction — it just picked the least-bad option.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- The catalog only has 18 songs, so some genres like rock and classical have just one track each, which is not enough to produce meaningful variety.
+- The system has no memory. It cannot learn from skips, replays, or any real listening behavior, so it produces the same output every time for the same profile.
+- Genre carries the most weight, which creates a filter bubble. Users will almost always get songs from their stated genre even when other genres would match their mood and energy better.
+- Tempo, valence, and danceability are tracked but not used in scoring, so a lot of available signal is wasted.
+- The system cannot handle contradictory preferences. A classical fan who wants high energy will get metal songs because the math has no way to flag the conflict.
 
 ---
 
@@ -153,17 +152,21 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+Building this recommender made it clear how much a single design choice — like giving genre 3x the weight of any other feature — shapes everything the system produces. A user who lists "rock" as their favorite genre will mostly get rock songs, even if the only rock song in the catalog has nothing else in common with what they want. That is exactly how filter bubbles form in real apps: the system keeps confirming the preference it already knows about and never takes a risk on something different.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+The experiment of halving the genre weight and doubling the energy weight made the results feel more diverse and in some cases more accurate. The EDM profile and the lofi profile both got better results, which suggests that energy level might actually be a stronger signal of musical mood than the genre label. The part that surprised me most was the edge case profile — a classical fan who wants high energy. The system had no way to handle that contradiction, so it ended up recommending metal songs. A real recommender would surface that conflict or learn from the user's actual listening behavior that their stated preferences do not fully reflect their taste.
+
+**Profile comparison notes:**
+
+- High-Energy Pop vs Chill Lofi: the pop profile gets high danceability and upbeat songs, the lofi profile gets quiet and acoustic tracks. The mood and energy weights are doing most of the work here — the genre match just confirms what the energy already predicted.
+- Deep Intense Rock vs Edge Case Classical: both want high energy, but only rock has a matching genre song. The classical user ends up with the same high-energy results as the rock user minus the one genre match, which shows that when genre is rare in the catalog, energy basically takes over the ranking entirely.
 
 
 ---
 
 ## 7. `model_card_template.md`
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+Combines reflection and model card framing from the Module 3 guidance.
 
 ```markdown
 # 🎧 Model Card - Music Recommender Simulation
@@ -172,97 +175,53 @@ Combines reflection and model card framing from the Module 3 guidance. :contentR
 
 Give your recommender a name, for example:
 
-> VibeFinder 1.0
+Music Viber
 
 ---
 
 ## 2. Intended Use
 
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
+This system suggests up to 5 songs from an 18-song catalog by scoring each track against a user's preferred genre, mood, energy level, acoustic taste, decade, and mood tag. It is built for classroom exploration of how content-based filtering works and is not intended for real users or production environments.
 
 ---
 
 ## 3. How It Works (Short Explanation)
 
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
+Every song in the catalog gets a score based on how closely it matches what the user said they like. The system looks at the song's genre, mood, energy level, how acoustic it sounds, how popular it is, what decade it came from, and its detailed mood tag. On the user side, it takes their favorite genre, preferred mood, target energy, acoustic preference, preferred decade, and mood tag. It then adds up points for each match or near-match, sorts every song from highest to lowest score, and hands back the top 5. Think of it like a checklist where each item is worth a different number of points.
 
 ---
 
 ## 4. Data
 
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
+There are 18 songs in the catalog. The original starter file had 10, and 8 more were added to cover genres that were missing, like hip-hop, r&b, classical, edm, country, folk, reggae, and metal. The moods covered include happy, chill, intense, relaxed, focused, moody, and calm. The data was created manually for this simulation, so it mostly reflects a general western music taste and does not represent any real listening history or cultural diversity.
 
 ---
 
 ## 5. Strengths
 
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
+It works best when the user's preferred genre has more than one song in the catalog. The lofi profile was the most satisfying result. Library Rain and Midnight Coding came up first and it genuinely felt right. The system is also completely transparent, every recommendation shows exactly why it scored the way it did. That makes it easy to understand.
 
 ---
 
 ## 6. Limitations and Bias
 
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
+Genre has the highest weight so users almost always get songs from their stated genre even when a song from a different genre would fit their mood and energy perfectly. That is a filter bubble. The system also treats every user the same way, same weights, same formula so it cannot adapt to someone whose taste is more nuanced or complex. If used in a real product it would likely push users deeper into one genre over time and never introduce them to anything new which is exactly the kind of bias that makes real recommendation systems feel repetitive after a while.
 
 ---
 
 ## 7. Evaluation
 
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
+Four profiles were tested: a high-energy pop fan, a chill lofi listener, a deep rock fan, and an edge case of a classical fan who wanted high energy. The lofi and pop profiles felt accurate. The rock profile was weak because only one rock song exists in the catalog. The edge case broke the system. It recommended metal songs to a classical fan because the energy gap on the only classical song was too large to recover from. A weight shift experiment was also run where energy was doubled and genre was halved.
 
 ---
 
 ## 8. Future Work
 
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
+The catalog needs to grow. 18 songs is not enough for most genres to feel fairly represented. Using tempo and valence in the scoring would also help since both affect how a song feels but are currently ignored. Adding a feedback loop where skips and replays adjust the user profile over time would make the system actually learn, which is the biggest missing piece compared to how real recommenders work.
 
 ---
 
 ## 9. Personal Reflection
 
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
+I did not expect a single weight value to have such a visible effect on the output. Changing genre from 3.0 to 1.5 shifted the entire character of the results across every profile. A lot of what makes a real recommender feel smart or dumb is just a handful of numbers someone decided on. The edge case was the most interesting moment. Seeing a classical fan get recommended metal songs made it obvious that the system has no real understanding of what it is doing, it is just math. Human judgment still matters when preferences contradict each other, when the catalog is missing something, or when a user wants to be surprised rather than just confirmed.
+```
