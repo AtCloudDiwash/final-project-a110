@@ -1,0 +1,224 @@
+.results-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.results-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.results-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.prefs-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pref-chip {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+/* Diff banner */
+.diff-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(99, 102, 241, 0.08);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.diff-icon { font-size: 15px; }
+
+.diff-item {
+  color: var(--primary);
+  font-size: 12px;
+}
+
+.diff-item s { opacity: 0.5; text-decoration-color: var(--text-dim); }
+
+/* Warnings banner */
+.warnings-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--warning-bg);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.warn-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+.warn-list p {
+  font-size: 13px;
+  color: var(--warning);
+  line-height: 1.5;
+}
+
+/* Song list */
+.song-list { display: flex; flex-direction: column; }
+
+.song-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.song-card:last-child { border-bottom: none; }
+.song-card:hover { background: var(--bg-card-2); }
+
+.song-rank {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--border-light);
+  min-width: 32px;
+  text-align: center;
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.song-card:nth-child(1) .song-rank { color: #fbbf24; }
+.song-card:nth-child(2) .song-rank { color: #94a3b8; }
+.song-card:nth-child(3) .song-rank { color: #d97706; }
+
+.song-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.song-meta { display: flex; flex-direction: column; gap: 4px; }
+
+.song-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.song-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid;
+  letter-spacing: 0.2px;
+}
+
+.mood-badge {
+  color: var(--text-muted);
+  background: var(--bg-card-2);
+  border-color: var(--border-light);
+}
+
+.song-artist {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* Score bar */
+.score-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--primary-dark), var(--primary));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.score-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* AI explanation */
+.song-explanation {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.ai-icon {
+  color: var(--purple);
+  font-style: normal;
+  font-size: 11px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Satisfied row */
+.satisfied-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.satisfied-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.btn-satisfied {
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg-card-2);
+  color: var(--text-muted);
+}
+
+.btn-satisfied:hover { border-color: var(--border-light); color: var(--text); }
+.btn-satisfied.yes:hover { border-color: var(--success); color: var(--success); background: var(--success-bg); }
+.btn-satisfied.no:hover { border-color: var(--error); color: var(--error); background: var(--error-bg); }

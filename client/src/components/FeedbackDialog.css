@@ -1,0 +1,88 @@
+.feedback-dialog {
+  background: var(--bg-card);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.feedback-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.feedback-icon { font-size: 22px; flex-shrink: 0; }
+
+.feedback-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feedback-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.feedback-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.6;
+}
+
+.feedback-input::placeholder { color: var(--text-dim); }
+
+.feedback-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-dismiss {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.btn-dismiss:hover { border-color: var(--border-light); color: var(--text); }
+
+.btn-retry {
+  background: var(--primary-dark);
+  color: white;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-retry:hover:not(:disabled) { background: #7c3aed; }
+.btn-retry:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

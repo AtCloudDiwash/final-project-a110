@@ -1,4 +1,9 @@
+fastapi
+uvicorn[standard]
+google-genai
+qdrant-client
+sentence-transformers
+python-dotenv
 pandas
 pytest
-streamlit
 tabulate
