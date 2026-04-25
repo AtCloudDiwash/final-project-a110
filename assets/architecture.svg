@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="1150" height="920" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+<svg width="1100" height="895" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
   <defs>
     <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
       <path d="M0,0 L0,6 L8,3 z" fill="#6366f1"/>
@@ -10,8 +10,8 @@
     <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
       <path d="M0,0 L0,6 L8,3 z" fill="#22c55e"/>
     </marker>
-    <marker id="arrowTeal" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#14b8a6"/>
+    <marker id="arrowCyan" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4"/>
     </marker>
     <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
       <path d="M0,0 L0,6 L8,3 z" fill="#a855f7"/>
@@ -19,183 +19,197 @@
   </defs>
 
   <!-- Background -->
-  <rect width="1150" height="920" fill="#0d0d1a"/>
+  <rect width="1100" height="895" fill="#0d0d1a"/>
 
   <!-- Title -->
-  <text x="575" y="35" text-anchor="middle" fill="white" font-size="20" font-weight="bold">Music Viber AI — Full System Architecture</text>
+  <text x="425" y="30" text-anchor="middle" fill="white" font-size="18" font-weight="bold">Music Viber AI — System Architecture</text>
+  <text x="425" y="46" text-anchor="middle" fill="#475569" font-size="11">React · FastAPI · Gemini 2.5 Flash · Qdrant · sentence-transformers</text>
 
   <!-- ===== FRONTEND ===== -->
-  <rect x="30" y="55" width="820" height="125" rx="10" fill="#111122" stroke="#f59e0b" stroke-width="2"/>
-  <text x="440" y="75" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold" letter-spacing="2">REACT FRONTEND</text>
+  <rect x="25" y="55" width="792" height="148" rx="10" fill="#111122" stroke="#f59e0b" stroke-width="2"/>
+  <text x="421" y="73" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="bold" letter-spacing="2">REACT FRONTEND</text>
 
   <!-- Profile Panel -->
-  <rect x="45" y="82" width="385" height="85" rx="6" fill="#1e1204" stroke="#f59e0b" stroke-width="1.5"/>
-  <text x="237" y="100" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">Profile Panel</text>
-  <text x="237" y="116" text-anchor="middle" fill="#d4a055" font-size="9">Sliders: genre · mood · energy · acousticness · decade</text>
-  <text x="237" y="130" text-anchor="middle" fill="#d4a055" font-size="9">mood_tag · likes_acoustic</text>
-  <text x="237" y="148" text-anchor="middle" fill="#fbbf24" font-size="10">[ Random Profile ]  →  POST /recommend/from-profile</text>
+  <rect x="38" y="81" width="340" height="108" rx="6" fill="#1e1204" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="208" y="98" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="bold">Profile Panel  (always visible)</text>
+  <text x="208" y="113" text-anchor="middle" fill="#d4a055" font-size="8.5">genre · mood · energy slider</text>
+  <text x="208" y="126" text-anchor="middle" fill="#d4a055" font-size="8.5">decade · mood_tag · likes_acoustic</text>
+  <text x="208" y="139" text-anchor="middle" fill="#d4a055" font-size="8.5">🎲 Randomize</text>
+  <text x="208" y="153" text-anchor="middle" fill="#d4a055" font-size="8.5">Scoring Mode: balanced / genre_first / mood_first / energy_focused</text>
+  <text x="208" y="167" text-anchor="middle" fill="#fbbf24" font-size="8">→ always included as profile: {}</text>
 
-  <!-- Query Section -->
-  <rect x="445" y="82" width="390" height="85" rx="6" fill="#1e1204" stroke="#f59e0b" stroke-width="1.5"/>
-  <text x="640" y="100" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">Query Section</text>
-  <text x="640" y="116" text-anchor="middle" fill="#d4a055" font-size="9">Mode A: "Something chill to study to at 2am"</text>
-  <text x="640" y="130" text-anchor="middle" fill="#d4a055" font-size="9">Mode B: "I've been listening to Frank Ocean, The Weeknd..."</text>
-  <text x="640" y="148" text-anchor="middle" fill="#fbbf24" font-size="10">POST /recommend/from-text  |  /recommend/from-songs</text>
+  <!-- Optional add-ons header -->
+  <text x="538" y="90" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="bold" letter-spacing="1">OPTIONAL ADD-ONS</text>
 
-  <!-- Arrow Frontend to Backend -->
-  <line x1="440" y1="180" x2="440" y2="215" stroke="#6366f1" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <!-- Describe card -->
+  <rect x="393" y="95" width="197" height="48" rx="5" fill="#0d1a12" stroke="#4ade80" stroke-width="1.2" stroke-dasharray="5,2"/>
+  <text x="491" y="112" text-anchor="middle" fill="#4ade80" font-size="9" font-weight="bold">✍️  Describe what you want</text>
+  <text x="491" y="126" text-anchor="middle" fill="#86efac" font-size="8">Textarea → query: "..."</text>
+  <text x="491" y="138" text-anchor="middle" fill="#86efac" font-size="7.5">toggle · null when off</text>
+
+  <!-- Songs card -->
+  <rect x="393" y="149" width="197" height="48" rx="5" fill="#0d1a12" stroke="#4ade80" stroke-width="1.2" stroke-dasharray="5,2"/>
+  <text x="491" y="165" text-anchor="middle" fill="#4ade80" font-size="9" font-weight="bold">🎧  Songs I've Heard</text>
+  <text x="491" y="179" text-anchor="middle" fill="#86efac" font-size="8">Tag input → songs: [...]</text>
+  <text x="491" y="191" text-anchor="middle" fill="#86efac" font-size="7.5">toggle · null when off</text>
+
+  <!-- Submit area -->
+  <rect x="599" y="95" width="208" height="102" rx="5" fill="#1a0a2e" stroke="#6366f1" stroke-width="1.2"/>
+  <text x="703" y="114" text-anchor="middle" fill="#a5b4fc" font-size="9" font-weight="bold">POST /recommend</text>
+  <text x="703" y="129" text-anchor="middle" fill="#c7d2fe" font-size="8">profile: {}  (always)</text>
+  <text x="703" y="143" text-anchor="middle" fill="#c7d2fe" font-size="8">query: "..." | null</text>
+  <text x="703" y="157" text-anchor="middle" fill="#c7d2fe" font-size="8">songs: [...] | null</text>
+  <text x="703" y="171" text-anchor="middle" fill="#c7d2fe" font-size="8">mode: "balanced"</text>
+  <text x="703" y="185" text-anchor="middle" fill="#818cf8" font-size="7.5">→ GET /random-profile available</text>
+
+  <!-- Arrow Frontend → Backend -->
+  <line x1="421" y1="203" x2="421" y2="224" stroke="#6366f1" stroke-width="2" marker-end="url(#arrowBlue)"/>
 
   <!-- ===== BACKEND ===== -->
-  <rect x="30" y="215" width="820" height="460" rx="10" fill="#090918" stroke="#6366f1" stroke-width="2"/>
-  <text x="440" y="235" text-anchor="middle" fill="#818cf8" font-size="12" font-weight="bold" letter-spacing="2">FASTAPI BACKEND</text>
+  <rect x="25" y="226" width="792" height="412" rx="10" fill="#090918" stroke="#6366f1" stroke-width="2"/>
+  <text x="421" y="245" text-anchor="middle" fill="#818cf8" font-size="11" font-weight="bold" letter-spacing="2">FASTAPI BACKEND  —  /recommend pipeline</text>
 
-  <!-- Step 1: Last.fm -->
-  <rect x="45" y="245" width="245" height="70" rx="6" fill="#021a1a" stroke="#14b8a6" stroke-width="1.5"/>
-  <text x="167" y="263" text-anchor="middle" fill="#14b8a6" font-size="10" font-weight="bold">① Last.fm Lookup</text>
-  <text x="167" y="278" text-anchor="middle" fill="#5eead4" font-size="8">Conditional: Mode B only</text>
-  <text x="167" y="291" text-anchor="middle" fill="#5eead4" font-size="8">Fetch genre + tags for named songs</text>
-  <text x="167" y="306" text-anchor="middle" fill="#14b8a6" font-size="8">Enriches input before parsing</text>
+  <!-- Step 1: Synthesize (conditional) -->
+  <rect x="98" y="252" width="626" height="56" rx="6" fill="#12031e" stroke="#a855f7" stroke-width="1.5"/>
+  <rect x="98" y="252" width="118" height="16" rx="3" fill="#a855f7"/>
+  <text x="157" y="263" text-anchor="middle" fill="white" font-size="8" font-weight="bold">①  CONDITIONAL</text>
+  <text x="421" y="271" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="bold">Gemini: synthesize_inputs(profile, query, songs)</text>
+  <text x="421" y="285" text-anchor="middle" fill="#d8b4fe" font-size="8.5">Called only when at least one add-on is active</text>
+  <text x="421" y="297" text-anchor="middle" fill="#d8b4fe" font-size="8">Blends base profile + text description + song list → one refined prefs dict  ·  Skipped when no add-ons</text>
 
-  <!-- Step 2: Gemini Parse -->
-  <rect x="305" y="245" width="245" height="70" rx="6" fill="#12031e" stroke="#a855f7" stroke-width="1.5"/>
-  <text x="427" y="263" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="bold">② Gemini: Parse Preferences</text>
-  <text x="427" y="278" text-anchor="middle" fill="#d8b4fe" font-size="8">NL text → structured prefs dict</text>
-  <text x="427" y="291" text-anchor="middle" fill="#d8b4fe" font-size="8">{genre, mood, energy, likes_acoustic,</text>
-  <text x="427" y="306" text-anchor="middle" fill="#d8b4fe" font-size="8">preferred_decade, preferred_mood_tag}</text>
+  <!-- Arrow ①→② -->
+  <line x1="421" y1="308" x2="421" y2="319" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
 
-  <!-- Step 3: Guardrail -->
-  <rect x="565" y="245" width="270" height="70" rx="6" fill="#1e0303" stroke="#ef4444" stroke-width="1.5"/>
-  <text x="700" y="263" text-anchor="middle" fill="#f87171" font-size="10" font-weight="bold">③ Guardrail Validation</text>
-  <text x="700" y="278" text-anchor="middle" fill="#fca5a5" font-size="8">classical + energy &gt; 0.7 → warn</text>
-  <text x="700" y="291" text-anchor="middle" fill="#fca5a5" font-size="8">acoustic + energy &gt; 0.8 → warn</text>
-  <text x="700" y="306" text-anchor="middle" fill="#fca5a5" font-size="8">unknown genre / mood → warn</text>
+  <!-- Step 2: Guardrails -->
+  <rect x="98" y="321" width="626" height="52" rx="6" fill="#1e0303" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="421" y="338" text-anchor="middle" fill="#f87171" font-size="10" font-weight="bold">②  Guardrails Validation  (always runs)</text>
+  <text x="421" y="352" text-anchor="middle" fill="#fca5a5" font-size="8">classical + energy &gt; 0.7  ·  acoustic + energy &gt; 0.8  ·  unknown genre or mood</text>
+  <text x="421" y="364" text-anchor="middle" fill="#fca5a5" font-size="8">Non-blocking → returns warnings[] displayed as UI banner</text>
 
-  <!-- Step 1 → Step 2 -->
-  <line x1="290" y1="280" x2="305" y2="280" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
-  <!-- Step 2 → Step 3 -->
-  <line x1="550" y1="280" x2="565" y2="280" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <!-- Arrow ②→③ -->
+  <line x1="421" y1="373" x2="421" y2="384" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
 
-  <!-- Down arrow Step3 → Step4 -->
-  <line x1="440" y1="315" x2="440" y2="350" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <!-- Step 3: Embed -->
+  <rect x="98" y="386" width="626" height="52" rx="6" fill="#021a02" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="421" y="403" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">③  Embed Preferences  —  sentence-transformers</text>
+  <text x="421" y="417" text-anchor="middle" fill="#86efac" font-size="8">all-MiniLM-L6-v2  ·  prefs dict → text string → 384-dim float vector  ·  100% local, no API key</text>
+  <text x="421" y="429" text-anchor="middle" fill="#86efac" font-size="7.5">"genre:lofi mood:chill energy:0.4 acoustic:yes decade:2020 mood_tag:peaceful"</text>
 
-  <!-- Step 4: Embed -->
-  <rect x="145" y="350" width="590" height="55" rx="6" fill="#021a02" stroke="#22c55e" stroke-width="1.5"/>
-  <text x="440" y="370" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">④ Embed Preference Vector</text>
-  <text x="440" y="385" text-anchor="middle" fill="#86efac" font-size="8">sentence-transformers converts prefs dict → 768-dim vector</text>
-  <text x="440" y="397" text-anchor="middle" fill="#86efac" font-size="8">This vector is queried against the VectorDB index</text>
+  <!-- Arrow ③→④ -->
+  <line x1="421" y1="438" x2="421" y2="449" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
 
-  <!-- Down arrow Step4 → Step5 -->
-  <line x1="440" y1="405" x2="440" y2="435" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <!-- Step 4: Qdrant -->
+  <rect x="98" y="451" width="626" height="52" rx="6" fill="#011c1c" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="421" y="468" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="bold">④  Qdrant Vector Search  —  RAG</text>
+  <text x="421" y="482" text-anchor="middle" fill="#67e8f9" font-size="8">ANN cosine similarity: prefs vector vs 102 pre-embedded songs  →  top 50 candidates</text>
+  <text x="421" y="494" text-anchor="middle" fill="#67e8f9" font-size="8">Local embedded (qdrant_data/)  or  Qdrant Cloud  via QDRANT_URL + QDRANT_API_KEY</text>
 
-  <!-- Step 5: VectorDB RAG -->
-  <rect x="95" y="435" width="690" height="70" rx="6" fill="#021a02" stroke="#22c55e" stroke-width="2"/>
-  <text x="440" y="455" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">⑤ Chroma VectorDB  —  RAG</text>
-  <text x="440" y="470" text-anchor="middle" fill="#86efac" font-size="8">ANN similarity search: preference vector vs 1M pre-embedded songs</text>
-  <text x="440" y="483" text-anchor="middle" fill="#86efac" font-size="8">Returns top 50 candidate songs with full metadata</text>
-  <text x="440" y="496" text-anchor="middle" fill="#4ade80" font-size="8">Million Song Dataset: energy · acousticness · danceability · valence · tempo per song</text>
+  <!-- Arrow ④→⑤ -->
+  <line x1="421" y1="503" x2="421" y2="514" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
 
-  <!-- Down arrow Step5 → Step6 -->
-  <line x1="440" y1="505" x2="440" y2="535" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <!-- Step 5: Re-rank -->
+  <rect x="98" y="516" width="626" height="56" rx="6" fill="#1a1a02" stroke="#eab308" stroke-width="1.5"/>
+  <text x="421" y="533" text-anchor="middle" fill="#facc15" font-size="10" font-weight="bold">⑤  recommender.py  —  Deterministic Re-rank</text>
+  <text x="421" y="547" text-anchor="middle" fill="#fde047" font-size="8">Weighted scorer: genre · mood · energy · acousticness · decade · mood_tag · popularity</text>
+  <text x="421" y="561" text-anchor="middle" fill="#fde047" font-size="8">4 scoring modes  ·  Diversity filter (max 2/artist, max 2/genre)  →  Top 5 songs</text>
 
-  <!-- Step 6: Re-rank -->
-  <rect x="95" y="535" width="690" height="60" rx="6" fill="#1a1a02" stroke="#eab308" stroke-width="1.5"/>
-  <text x="440" y="555" text-anchor="middle" fill="#facc15" font-size="10" font-weight="bold">⑥ recommender.py  —  Re-rank Top 50</text>
-  <text x="440" y="570" text-anchor="middle" fill="#fde047" font-size="8">Weighted scorer: genre · mood · energy · acoustic · popularity · decade · mood_tag</text>
-  <text x="440" y="583" text-anchor="middle" fill="#fde047" font-size="8">Deterministic · 4 scoring modes · Diversity filter (max 2/artist, max 2/genre) → Top 5</text>
+  <!-- Arrow ⑤→⑥ -->
+  <line x1="421" y1="572" x2="421" y2="583" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
 
-  <!-- Down arrow Step6 → Step7 -->
-  <line x1="440" y1="595" x2="440" y2="625" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
-
-  <!-- Step 7: Gemini Explain -->
-  <rect x="145" y="625" width="590" height="42" rx="6" fill="#12031e" stroke="#a855f7" stroke-width="1.5"/>
-  <text x="440" y="643" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="bold">⑦ Gemini: Generate Explanations (Top 3)</text>
-  <text x="440" y="657" text-anchor="middle" fill="#d8b4fe" font-size="8">Human-readable reasons · Batched single API call · Few-shot system prompt</text>
+  <!-- Step 6: Explain -->
+  <rect x="98" y="585" width="626" height="44" rx="6" fill="#12031e" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="421" y="601" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="bold">⑥  Gemini: generate_explanations(top 3 songs)</text>
+  <text x="421" y="617" text-anchor="middle" fill="#d8b4fe" font-size="8">Single batched API call · 3 natural-language explanation strings · Falls back to rule-based reasons on error</text>
 
   <!-- Arrow Backend → Results -->
-  <line x1="440" y1="675" x2="440" y2="705" stroke="#ec4899" stroke-width="2" marker-end="url(#arrowPink)"/>
+  <line x1="421" y1="638" x2="421" y2="658" stroke="#ec4899" stroke-width="2" marker-end="url(#arrowPink)"/>
 
   <!-- ===== RESULTS + FEEDBACK ===== -->
-  <rect x="30" y="705" width="820" height="150" rx="10" fill="#150a15" stroke="#ec4899" stroke-width="2"/>
-  <text x="440" y="725" text-anchor="middle" fill="#f472b6" font-size="12" font-weight="bold" letter-spacing="2">RESULTS + FEEDBACK LOOP  (Agentic)</text>
+  <rect x="25" y="660" width="792" height="160" rx="10" fill="#150a15" stroke="#ec4899" stroke-width="2"/>
+  <text x="421" y="678" text-anchor="middle" fill="#f472b6" font-size="11" font-weight="bold" letter-spacing="2">RESULTS + AGENTIC FEEDBACK LOOP</text>
 
-  <!-- Results panel -->
-  <rect x="45" y="733" width="385" height="108" rx="6" fill="#200a20" stroke="#ec4899" stroke-width="1.5"/>
-  <text x="237" y="751" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="bold">Top 5 Songs + AI Explanations</text>
-  <text x="237" y="767" text-anchor="middle" fill="#fbcfe8" font-size="8">Warnings banner if guardrail fired</text>
-  <text x="237" y="781" text-anchor="middle" fill="#fbcfe8" font-size="8">Score + human-readable reason per song</text>
-  <text x="237" y="797" text-anchor="middle" fill="#f472b6" font-size="9">"Are you satisfied?"  [ Yes ]  [ No ]</text>
-  <text x="237" y="813" text-anchor="middle" fill="#fbcfe8" font-size="8">Deterministic: same input → same results every time</text>
-  <text x="237" y="829" text-anchor="middle" fill="#fbcfe8" font-size="8">Verified by eval harness (5 test cases)</text>
+  <!-- Results box -->
+  <rect x="38" y="685" width="350" height="124" rx="6" fill="#200a20" stroke="#ec4899" stroke-width="1.5"/>
+  <text x="213" y="701" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="bold">Results Panel</text>
+  <text x="213" y="716" text-anchor="middle" fill="#fbcfe8" font-size="8">Top 5 songs · score bar · ✦ AI explanation per song</text>
+  <text x="213" y="729" text-anchor="middle" fill="#fbcfe8" font-size="8">Warnings banner if any guardrails fired</text>
+  <text x="213" y="742" text-anchor="middle" fill="#fbcfe8" font-size="8">Diff banner on retry  e.g.  energy 0.4 → 0.7</text>
+  <text x="213" y="760" text-anchor="middle" fill="#f9a8d4" font-size="9" font-weight="bold">[  ✓  Satisfied  ]    [  ✗  Not Satisfied  ]</text>
+  <text x="213" y="775" text-anchor="middle" fill="#fbcfe8" font-size="8">Deterministic: same prefs → same top 5 every run</text>
+  <text x="213" y="789" text-anchor="middle" fill="#fbcfe8" font-size="8">5 profile test-cases verified by eval harness</text>
 
-  <!-- Feedback panel -->
-  <rect x="445" y="733" width="390" height="108" rx="6" fill="#200a20" stroke="#ec4899" stroke-width="1.5"/>
-  <text x="640" y="751" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="bold">Feedback → Retry</text>
-  <text x="640" y="767" text-anchor="middle" fill="#fbcfe8" font-size="8">"Why didn't you like it?" [free text]</text>
-  <text x="640" y="781" text-anchor="middle" fill="#fbcfe8" font-size="8">Gemini adjusts prefs based on complaint</text>
-  <text x="640" y="797" text-anchor="middle" fill="#f472b6" font-size="9">Shows diff: energy 0.4 → 0.6</text>
-  <text x="640" y="813" text-anchor="middle" fill="#fbcfe8" font-size="8">Re-runs from Step ④ with updated vector</text>
-  <text x="640" y="829" text-anchor="middle" fill="#fbcfe8" font-size="8">Capped at 1 retry to limit prompt growth</text>
+  <!-- Feedback box -->
+  <rect x="400" y="685" width="404" height="124" rx="6" fill="#200a20" stroke="#ec4899" stroke-width="1.5"/>
+  <text x="602" y="701" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="bold">Feedback → Retry  (capped at 1)</text>
+  <text x="602" y="716" text-anchor="middle" fill="#fbcfe8" font-size="8">FeedbackDialog: free-text "why didn't you like it?"</text>
+  <text x="602" y="729" text-anchor="middle" fill="#fbcfe8" font-size="8">POST /recommend/retry</text>
+  <text x="602" y="742" text-anchor="middle" fill="#fbcfe8" font-size="8">Gemini: adjust_preferences(original_query, feedback, prev_prefs)</text>
+  <text x="602" y="755" text-anchor="middle" fill="#f472b6" font-size="8">Returns new_prefs + diff  ·  Re-runs pipeline from step ③</text>
+  <text x="602" y="768" text-anchor="middle" fill="#fbcfe8" font-size="8">Shows what changed in a diff banner</text>
+  <text x="602" y="782" text-anchor="middle" fill="#fbcfe8" font-size="8">One retry only — prevents prompt growth</text>
 
-  <!-- Feedback loop arrow curved back up (right side) -->
-  <path d="M 850 780 Q 945 780 945 455 Q 945 250 835 262" stroke="#ec4899" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowPink)"/>
-  <text x="958" y="560" fill="#f472b6" font-size="8" transform="rotate(90,958,560)">previous results + feedback</text>
+  <!-- Feedback loop arrow: right of results panel → up left side → step ③ -->
+  <path d="M 817 742 Q 829 742 829 415 Q 829 386 724 412" stroke="#ec4899" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowPink)"/>
+  <text x="843" y="597" fill="#f472b6" font-size="8" transform="rotate(90,843,597)">retry → re-run from ③</text>
 
   <!-- ===== EXTERNAL SERVICES ===== -->
 
-  <!-- Last.fm -->
-  <rect x="975" y="245" width="150" height="68" rx="8" fill="#021a1a" stroke="#14b8a6" stroke-width="1.5"/>
-  <text x="1050" y="264" text-anchor="middle" fill="#14b8a6" font-size="10" font-weight="bold">Last.fm API</text>
-  <text x="1050" y="279" text-anchor="middle" fill="#5eead4" font-size="8">Free · No OAuth needed</text>
-  <text x="1050" y="292" text-anchor="middle" fill="#5eead4" font-size="8">Genre tags per artist/song</text>
-  <text x="1050" y="305" text-anchor="middle" fill="#14b8a6" font-size="8">→ Mode B enrichment</text>
-  <line x1="975" y1="279" x2="850" y2="268" stroke="#14b8a6" stroke-width="1" stroke-dasharray="4,2"/>
-
   <!-- Gemini API -->
-  <rect x="975" y="333" width="150" height="68" rx="8" fill="#12031e" stroke="#a855f7" stroke-width="1.5"/>
-  <text x="1050" y="352" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="bold">Gemini API</text>
-  <text x="1050" y="367" text-anchor="middle" fill="#d8b4fe" font-size="8">google-genai SDK</text>
-  <text x="1050" y="380" text-anchor="middle" fill="#d8b4fe" font-size="8">Steps ② and ⑦</text>
-  <text x="1050" y="393" text-anchor="middle" fill="#d8b4fe" font-size="8">JSON mode + few-shot</text>
-  <line x1="975" y1="367" x2="850" y2="360" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,2"/>
+  <rect x="842" y="252" width="232" height="84" rx="8" fill="#12031e" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="958" y="272" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="bold">Gemini 2.5 Flash</text>
+  <text x="958" y="287" text-anchor="middle" fill="#d8b4fe" font-size="8">google-genai SDK</text>
+  <text x="958" y="300" text-anchor="middle" fill="#d8b4fe" font-size="8">① synthesize_inputs</text>
+  <text x="958" y="313" text-anchor="middle" fill="#d8b4fe" font-size="8">⑥ generate_explanations</text>
+  <text x="958" y="326" text-anchor="middle" fill="#d8b4fe" font-size="8">retry: adjust_preferences</text>
+  <line x1="842" y1="294" x2="724" y2="280" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,2"/>
 
-  <!-- Million Song Dataset -->
-  <rect x="975" y="421" width="150" height="68" rx="8" fill="#021a02" stroke="#22c55e" stroke-width="1.5"/>
-  <text x="1050" y="440" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">Million Song</text>
-  <text x="1050" y="455" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">Dataset</text>
-  <text x="1050" y="470" text-anchor="middle" fill="#86efac" font-size="8">1M songs pre-embedded</text>
-  <text x="1050" y="481" text-anchor="middle" fill="#86efac" font-size="8">→ Chroma VectorDB</text>
-  <line x1="975" y1="470" x2="785" y2="470" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,2"/>
+  <!-- Qdrant -->
+  <rect x="842" y="348" width="232" height="82" rx="8" fill="#011c1c" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="958" y="367" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="bold">Qdrant Vector DB</text>
+  <text x="958" y="382" text-anchor="middle" fill="#67e8f9" font-size="8">Local: QdrantClient(path="qdrant_data/")</text>
+  <text x="958" y="395" text-anchor="middle" fill="#67e8f9" font-size="8">Cloud: QDRANT_URL + QDRANT_API_KEY</text>
+  <text x="958" y="408" text-anchor="middle" fill="#67e8f9" font-size="8">collection: songs · vector_size: 384</text>
+  <text x="958" y="421" text-anchor="middle" fill="#67e8f9" font-size="7.5">build_index.py seeds on first run</text>
+  <line x1="842" y1="389" x2="724" y2="478" stroke="#06b6d4" stroke-width="1" stroke-dasharray="4,2"/>
 
-  <!-- Eval Harness -->
-  <rect x="975" y="509" width="150" height="68" rx="8" fill="#1a1a02" stroke="#eab308" stroke-width="1.5"/>
-  <text x="1050" y="528" text-anchor="middle" fill="#facc15" font-size="10" font-weight="bold">eval/evaluate.py</text>
-  <text x="1050" y="543" text-anchor="middle" fill="#fde047" font-size="8">5 predefined inputs</text>
-  <text x="1050" y="556" text-anchor="middle" fill="#fde047" font-size="8">PASS / FAIL table</text>
-  <text x="1050" y="569" text-anchor="middle" fill="#fde047" font-size="8">Reliability harness</text>
-  <line x1="975" y1="565" x2="785" y2="560" stroke="#eab308" stroke-width="1" stroke-dasharray="4,2"/>
+  <!-- sentence-transformers -->
+  <rect x="842" y="444" width="232" height="76" rx="8" fill="#021a02" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="958" y="462" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">sentence-transformers</text>
+  <text x="958" y="477" text-anchor="middle" fill="#86efac" font-size="8">all-MiniLM-L6-v2  ·  384-dim</text>
+  <text x="958" y="490" text-anchor="middle" fill="#86efac" font-size="8">Runs 100% locally  ·  ~80 MB</text>
+  <text x="958" y="503" text-anchor="middle" fill="#86efac" font-size="8">No API key needed</text>
+  <line x1="842" y1="482" x2="724" y2="414" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,2"/>
+
+  <!-- songs.json -->
+  <rect x="842" y="534" width="232" height="72" rx="8" fill="#1a1a02" stroke="#eab308" stroke-width="1.5"/>
+  <text x="958" y="553" text-anchor="middle" fill="#facc15" font-size="10" font-weight="bold">songs.json  (catalog)</text>
+  <text x="958" y="568" text-anchor="middle" fill="#fde047" font-size="8">102 songs  ·  15 genres  ·  7 moods</text>
+  <text x="958" y="581" text-anchor="middle" fill="#fde047" font-size="8">9 mood tags  ·  full audio features</text>
+  <text x="958" y="594" text-anchor="middle" fill="#fde047" font-size="7.5">data/new_data/songs.json</text>
+  <line x1="842" y1="570" x2="724" y2="544" stroke="#eab308" stroke-width="1" stroke-dasharray="4,2"/>
 
   <!-- ===== LEGEND ===== -->
-  <rect x="30" y="873" width="820" height="35" rx="6" fill="#0d0d1a" stroke="#333355" stroke-width="1"/>
-  <text x="52" y="888" fill="#ffffff" font-size="9" font-weight="bold">AI FEATURES:</text>
+  <rect x="25" y="835" width="792" height="38" rx="6" fill="#0d0d1a" stroke="#1e2240" stroke-width="1"/>
+  <text x="46" y="851" fill="#e2e8f0" font-size="9" font-weight="bold">AI FEATURES:</text>
 
-  <circle cx="142" cy="885" r="5" fill="#22c55e"/>
-  <text x="152" y="889" fill="#86efac" font-size="9">RAG (VectorDB)</text>
+  <circle cx="135" cy="854" r="5" fill="#a855f7"/>
+  <text x="145" y="858" fill="#d8b4fe" font-size="9">Gemini LLM</text>
 
-  <circle cx="240" cy="885" r="5" fill="#ec4899"/>
-  <text x="250" y="889" fill="#fbcfe8" font-size="9">Agentic Workflow</text>
+  <circle cx="218" cy="854" r="5" fill="#22c55e"/>
+  <text x="228" y="858" fill="#86efac" font-size="9">RAG / Vector Search</text>
 
-  <circle cx="348" cy="885" r="5" fill="#a855f7"/>
-  <text x="358" y="889" fill="#d8b4fe" font-size="9">Gemini AI</text>
+  <circle cx="340" cy="854" r="5" fill="#ec4899"/>
+  <text x="350" y="858" fill="#fbcfe8" font-size="9">Agentic Feedback Loop</text>
 
-  <circle cx="415" cy="885" r="5" fill="#ef4444"/>
-  <text x="425" y="889" fill="#fca5a5" font-size="9">Guardrails</text>
+  <circle cx="480" cy="854" r="5" fill="#ef4444"/>
+  <text x="490" y="858" fill="#fca5a5" font-size="9">Guardrails</text>
 
-  <circle cx="487" cy="885" r="5" fill="#eab308"/>
-  <text x="497" y="889" fill="#fde047" font-size="9">Deterministic Scorer</text>
+  <circle cx="556" cy="854" r="5" fill="#eab308"/>
+  <text x="566" y="858" fill="#fde047" font-size="9">Deterministic Scorer</text>
 
-  <circle cx="600" cy="885" r="5" fill="#14b8a6"/>
-  <text x="610" y="889" fill="#5eead4" font-size="9">External APIs</text>
+  <circle cx="674" cy="854" r="5" fill="#06b6d4"/>
+  <text x="684" y="858" fill="#67e8f9" font-size="9">Qdrant Embeddings</text>
 
-  <circle cx="668" cy="885" r="5" fill="#f59e0b"/>
-  <text x="678" y="889" fill="#fcd34d" font-size="9">Frontend</text>
+  <circle cx="766" cy="854" r="5" fill="#f59e0b"/>
+  <text x="776" y="858" fill="#fcd34d" font-size="9">React UI</text>
 </svg>
