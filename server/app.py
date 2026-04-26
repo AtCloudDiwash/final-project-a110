@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from src.recommender import recommend_songs
 from ai.guardrails import validate_preferences, KNOWN_GENRES, KNOWN_MOODS, KNOWN_MOOD_TAGS
-from ai.embeddings import embed_preferences
+from ai.embeddings import embed_preferences, mmr_rerank
 from ai.qdrant_db import search_songs
 from ai.gemini import (
     parse_preferences,
@@ -51,10 +51,17 @@ def _build_result(song: dict, score: float, reasons: str) -> dict:
 
 
 def _run_pipeline(prefs: dict, mode: str = "balanced") -> dict:
+
+    # Runs the guardrails there: Checks if the prefs matches the defined set of configs
     warnings = validate_preferences(prefs)
 
+    vector = None
     try:
+
+        # Vector embeddings conversion
         vector = embed_preferences(prefs)
+
+        # Vector search
         candidates = search_songs(vector, top_k=50)
     except Exception:
         candidates = get_songs()
@@ -62,17 +69,33 @@ def _run_pipeline(prefs: dict, mode: str = "balanced") -> dict:
     if not candidates:
         candidates = get_songs()
 
-    raw = recommend_songs(prefs, candidates, k=5, mode=mode, diversity=True)
+    # Wide pool without hard diversity so MMR has enough to choose from
+    raw = recommend_songs(prefs, candidates, k=30, mode=mode, diversity=False) # Notice: I disabled diversity so that the deterministic approach remains disabled
+
+    if vector is not None:
+        try:
+            #Reranking while keeping the diversity
+            raw = mmr_rerank(raw, vector, k=10, lam=0.7)
+        except Exception:
+            #Fallback method of ranking and diversification
+            raw = recommend_songs(prefs, candidates, k=10, mode=mode, diversity=True)
+    else:
+        raw = recommend_songs(prefs, candidates, k=10, mode=mode, diversity=True)
+
     results = [_build_result(song, score, reasons) for song, score, reasons in raw]
 
-    top3 = results[:3]
+    # AI explanations for the top 5; rule-based reasons for 6-10
+    top5 = results[:5]
     try:
-        explanations = generate_explanations("", top3)
+        explanations = generate_explanations("", top5, n=5)
         for i, exp in enumerate(explanations):
             results[i]["explanation"] = exp
     except Exception:
-        for r in results:
+        for r in top5:
             r["explanation"] = r["reasons"]
+
+    for r in results[5:]:
+        r["explanation"] = r["reasons"]
 
     return {"results": results, "warnings": warnings}
 
@@ -110,12 +133,15 @@ class RecommendRequest(BaseModel):
 
 # ── Endpoints ───────────────────────────────────────────────────────────────
 
+# When you hit that recommend putting /recommend endpoint runs
 
 @app.post("/recommend")
 def recommend(req: RecommendRequest):
     has_addons = bool(req.query) or bool(req.songs)
     if has_addons:
         try:
+
+            # This is where it synthesizes the details sent from frontend to call the gemini. 
             prefs = synthesize_inputs(req.profile, req.query, req.songs)
         except Exception as e:
             raise HTTPException(status_code=422, detail=str(e))
