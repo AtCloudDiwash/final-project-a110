@@ -324,13 +324,13 @@ These feel too slow and drifty. I want actual rock energy — guitars, drums, fo
 
 | Decision | Choice | Reason |
 |---|---|---|
-| LLM | Gemini 2.5 Flash | Free tier with generous quota, reliable JSON-mode output, and the `google-genai` SDK makes multi-turn structured calls straightforward. Flash specifically was chosen over Pro because latency matters more than raw capability for preference parsing — the tasks (parse, synthesize, explain, adjust) are all short structured outputs, not complex reasoning. |
-| Vector DB | Qdrant | Runs fully local via `QdrantClient(path=...)` with no Docker dependency — critical for a dev environment. Also supports a hosted cloud cluster by just swapping `QDRANT_URL` in `.env`, so scaling requires zero code changes. |
-| Embeddings | `all-MiniLM-L6-v2` (sentence-transformers) | 384-dim vectors, ~80 MB, runs on CPU in under 50ms per batch. No API key needed, no cost per call. The vector space is consistent for both songs and preference queries since both go through the same `_to_text()` serialization before encoding. |
-| Diversity | MMR over hard caps | The original hard cap (max 2 per genre) punished users who explicitly asked for a specific genre — if you want lofi, you should be able to get 4 lofi songs if they are all genuinely different. MMR solves this by penalizing semantic similarity rather than label repetition, so two near-identical lofi tracks get penalized while a lofi track with a different energy profile gets through. |
-| Re-ranker | `src/recommender.py` (Project 3) | The weighted scorer gives precise, explainable control over what matters most per request (scoring modes). Pure vector similarity alone would lose the ability to say "give me this exact mood and energy level." Keeping the scorer as Stage 2 means the system combines semantic retrieval (Qdrant) with rule-based precision (scorer) — each doing what it is best at. |
-| Feedback cap | 1 retry only | Allowing unlimited retries leads to prompt drift — each round Gemini adjusts based on the previous adjustment, not the original intent, and the profile can end up far from what the user actually wanted. One retry is enough to course-correct without losing the original signal. |
-| Deferred | Spotify Audio Features API | The `/audio-features` endpoint was deprecated for new app registrations in late 2024. Using it would block any new developer trying to run the project. The 102-song `songs.json` dataset was built manually with equivalent fields (`energy`, `valence`, `danceability`, `acousticness`, `tempo`) so the pipeline works identically. |
+| LLM | Gemini 2.5 Flash | Free tier, fast, reliable JSON output for short structured tasks. |
+| Vector DB | Qdrant | Works locally without Docker (`QdrantClient(path=...)`), also supports cloud with just an env var swap. |
+| Embeddings | `all-MiniLM-L6-v2` | Runs locally, no API key, fast on CPU. Both songs and preferences use the same text format so the vector space is consistent. |
+| Diversity | MMR over hard caps | Hard caps punish users who asked for a specific genre. MMR penalizes semantic similarity instead, so two nearly identical songs are penalized even if they have different labels. |
+| Re-ranker | `src/recommender.py` | Keeps the deterministic scorer from Project 3 as Stage 2. Vector search handles broad retrieval; the scorer handles precision on mood, energy, and genre. |
+| Feedback cap | 1 retry | Unlimited retries cause the profile to drift away from the original intent. One correction is enough. |
+| Deferred | Spotify Audio Features API | Deprecated for new app registrations in late 2024. |
 
 ---
 
@@ -443,3 +443,4 @@ and show imperfect results than to return nothing.
 ## Reflection
 
 <!-- What this project taught you about AI and problem-solving. Be honest and specific — this is the section employers actually read. -->
+
