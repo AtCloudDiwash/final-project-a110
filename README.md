@@ -202,63 +202,163 @@ The app will be available at `http://localhost:5173`. The API runs on `http://lo
 
 ## Sample Interactions
 
-### Example 1 — Natural Language Input
+### Example 1 — Natural Language Description Add-on
+
+Profile set to lofi / chill / energy 0.3, then the **"Describe what you want"** add-on is toggled on.
 
 **Input:**
 ```
-<!-- paste the text input you gave the system -->
+Something calm and dreamy to study to late at night — no lyrics, just atmosphere.
 ```
 
-**AI Output:**
-```
-<!-- paste the recommendations and explanation the system returned -->
-```
+Gemini synthesizes the add-on text with the base profile and refines it:
 
----
-
-### Example 2 — Structured Profile Input
-
-**Input:**
+**Resolved preference profile:**
 ```json
 {
-  "genre": "",
-  "mood": "",
-  "energy": 0.0,
-  "likes_acoustic": false
+  "genre": "lofi",
+  "mood": "chill",
+  "energy": 0.25,
+  "likes_acoustic": true,
+  "preferred_decade": null,
+  "preferred_mood_tag": "dreamy"
 }
 ```
 
-**AI Output:**
+**Top 3 results (with AI explanations):**
 ```
-<!-- paste the recommendations and explanation the system returned -->
+#1  Rainfall Study Session – Cozy Beats Co.   [lofi]  score 9.4
+    ✦ Gentle rain textures and slow tempo match your late-night, no-distraction vibe perfectly.
+
+#2  Midnight Pages – Lo-fi Cafe               [lofi]  score 8.9
+    ✦ Soft piano loops with dreamy pads are ideal for deep focus without lyrics pulling attention.
+
+#3  Floating Thoughts – ChillHop Collective   [ambient]  score 8.1
+    ✦ Ambient drones and minimal percussion create exactly the atmospheric, no-lyric study space you described.
 ```
 
 ---
 
-### Example 3 — Edge Case / Guardrail Triggered
+### Example 2 — Structured Profile Input Only (no add-ons)
 
-**Input:**
-```
-<!-- paste an input that triggers a guardrail warning -->
+No add-ons active — Gemini is skipped entirely, profile goes straight into the pipeline.
+
+**Input profile:**
+```json
+{
+  "genre": "synthwave",
+  "mood": "focused",
+  "energy": 0.75,
+  "likes_acoustic": false,
+  "preferred_decade": 1980,
+  "preferred_mood_tag": "energetic"
+}
 ```
 
-**AI Output:**
+**Top 3 results:**
 ```
-<!-- paste the warning message and how the system handled it -->
+#1  Neon Grid – Retrowave Drive               [synthwave]  score 10.2
+    ✦ Heavy synth arpeggios and 80s production style hit every point of your profile.
+
+#2  Chrome and Circuits – Digital Horizon     [synthwave]  score 9.6
+    ✦ Driving bassline and retro-futuristic pads match your high-energy, focused 80s preference.
+
+#3  Laser Highway – Synth City                [edm]  score 7.8
+    ✦ High-BPM energy and electronic texture keep momentum even though it drifts slightly from pure synthwave.
+```
+
+---
+
+### Example 3 — Guardrail Triggered
+
+Profile submitted with `genre: classical` and `energy: 0.9`.
+
+**Input profile:**
+```json
+{
+  "genre": "classical",
+  "mood": "intense",
+  "energy": 0.9,
+  "likes_acoustic": true,
+  "preferred_decade": null,
+  "preferred_mood_tag": null
+}
+```
+
+**Response — warnings banner shown in UI:**
+```
+⚠  Classical + high energy: only 1 classical song in catalog, results may be poor.
+⚠  Acoustic + high energy conflict: most acoustic songs are low energy.
+```
+
+The system still returns results — it does not block. The top result is the single classical track in the catalog; remaining slots are filled by the next-closest matches (ambient, folk) since no other classical songs exist.
+
+---
+
+### Example 4 — Feedback Loop (Retry)
+
+Initial request returns rock / intense results. User clicks **👎 Not Satisfied** and types feedback.
+
+**Initial profile:**
+```json
+{
+  "genre": "rock",
+  "mood": "intense",
+  "energy": 0.85,
+  "likes_acoustic": false,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "aggressive"
+}
+```
+
+**User feedback:**
+```
+These are too aggressive and loud. I want something intense but more melodic — like rock but with emotion.
+```
+
+Gemini runs `adjust_preferences()` and returns an updated profile with a diff:
+
+**Adjusted profile + diff banner shown in UI:**
+```
+🔄 Adjusted:  mood_tag: aggressive → melancholic   energy: 0.85 → 0.65   mood: intense → moody
+```
+
+```json
+{
+  "genre": "rock",
+  "mood": "moody",
+  "energy": 0.65,
+  "likes_acoustic": false,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "melancholic"
+}
+```
+
+**New top 3 results:**
+```
+#1  The Weight of Wings – Atlas Sound         [rock]  score 9.1
+    ✦ Emotional guitar work and moody dynamics match your shift toward melodic intensity.
+
+#2  Broken Frequencies – Hollow Ground        [indie pop]  score 8.4
+    ✦ Slower, textured rock with melancholic vocals fits the emotional but not aggressive direction.
+
+#3  Glass Roads – The Still                   [rock]  score 8.0
+    ✦ Mid-tempo rock with strong melodic hooks — intense without being abrasive.
 ```
 
 ---
 
 ## Design Decisions
 
-<!-- Why you built it this way. Cover: LLM choice, vector DB choice, why you kept the original re-ranker, what you deferred and why -->
-
 | Decision | Choice | Reason |
 |---|---|---|
-| LLM | Gemini | <!-- why --> |
-| Vector DB | Qdrant | <!-- why --> |
-| Re-ranker | `src/recommender.py` | <!-- why --> |
-| Deferred | Spotify Audio Features API | Deprecated for new apps |
+| LLM | Gemini 2.5 Flash | Free tier with generous quota, reliable JSON-mode output, and the `google-genai` SDK makes multi-turn structured calls straightforward. Flash specifically was chosen over Pro because latency matters more than raw capability for preference parsing — the tasks (parse, synthesize, explain, adjust) are all short structured outputs, not complex reasoning. |
+| Vector DB | Qdrant | Runs fully local via `QdrantClient(path=...)` with no Docker dependency — critical for a dev environment. Also supports a hosted cloud cluster by just swapping `QDRANT_URL` in `.env`, so scaling requires zero code changes. |
+| Embeddings | `all-MiniLM-L6-v2` (sentence-transformers) | 384-dim vectors, ~80 MB, runs on CPU in under 50ms per batch. No API key needed, no cost per call. The vector space is consistent for both songs and preference queries since both go through the same `_to_text()` serialization before encoding. |
+| Diversity | MMR over hard caps | The original hard cap (max 2 per genre) punished users who explicitly asked for a specific genre — if you want lofi, you should be able to get 4 lofi songs if they are all genuinely different. MMR solves this by penalizing semantic similarity rather than label repetition, so two near-identical lofi tracks get penalized while a lofi track with a different energy profile gets through. |
+| Re-ranker | `src/recommender.py` (Project 3) | The weighted scorer gives precise, explainable control over what matters most per request (scoring modes). Pure vector similarity alone would lose the ability to say "give me this exact mood and energy level." Keeping the scorer as Stage 2 means the system combines semantic retrieval (Qdrant) with rule-based precision (scorer) — each doing what it is best at. |
+| Feedback cap | 1 retry only | Allowing unlimited retries leads to prompt drift — each round Gemini adjusts based on the previous adjustment, not the original intent, and the profile can end up far from what the user actually wanted. One retry is enough to course-correct without losing the original signal. |
+| Deferred | Spotify Audio Features API | The `/audio-features` endpoint was deprecated for new app registrations in late 2024. Using it would block any new developer trying to run the project. The 102-song `songs.json` dataset was built manually with equivalent fields (`energy`, `valence`, `danceability`, `acousticness`, `tempo`) so the pipeline works identically. |
 
 ---
 
@@ -332,13 +432,6 @@ pytest tests/test_app.py -x
 ```
 
 > No API keys required — all external services (Gemini, Qdrant, embeddings) are mocked in `test_app.py`.
-
-**What worked:** <!-- fill in -->
-
-**What didn't work:** <!-- fill in -->
-
-**What you learned:** <!-- fill in -->
-
 ---
 
 ## Guardrails
