@@ -30,7 +30,7 @@ The new version introduces reliable way to generate user profile, implements fee
 
 ![Architecture Diagram](assets/architecture.svg)
 
-**Step 1 — User provides input (one of three forms)**
+**Step 1 — User provides input (one of three forms or all three forms)**
 - **Profile** — structured sliders: genre, mood, energy, acoustic preference, decade, mood tag
 - **Custom prompt** — free text like *"something chill for a late night drive"*
 - **Song list** — names of songs or artists they have been listening to
