@@ -233,6 +233,29 @@ Gemini mocked at the `server.app` import level. Covers:
 | `tests/test_guardrails.py` | Preference validation edge cases |
 | `tests/test_app.py` | All three layers above (18 tests) |
 
+### Running the Tests
+
+Make sure your virtual environment is active and dependencies are installed first.
+
+```bash
+# Run all tests
+pytest
+
+# Run only the new AI pipeline tests
+pytest tests/test_app.py
+
+# Run with verbose output (shows each test name)
+pytest tests/test_app.py -v
+
+# Run a single specific test
+pytest tests/test_app.py::test_health_returns_ok
+
+# Stop at the first failure
+pytest tests/test_app.py -x
+```
+
+> No API keys required — all external services (Gemini, Qdrant, embeddings) are mocked in `test_app.py`.
+
 **What worked:** <!-- fill in -->
 
 **What didn't work:** <!-- fill in -->
