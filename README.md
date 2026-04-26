@@ -202,63 +202,135 @@ The app will be available at `http://localhost:5173`. The API runs on `http://lo
 
 ## Sample Interactions
 
-### Example 1 — Natural Language Input
+### Example 1 — Text Prompt Only
+
+Only the **"Describe what you want"** add-on is active. No profile sliders, no song list.
 
 **Input:**
 ```
-<!-- paste the text input you gave the system -->
+Something moody and cinematic for a rainy evening — music that feels like watching a city through a window.
 ```
 
-**AI Output:**
-```
-<!-- paste the recommendations and explanation the system returned -->
-```
-
----
-
-### Example 2 — Structured Profile Input
-
-**Input:**
+**Gemini extracts this into a preference profile:**
 ```json
 {
-  "genre": "",
-  "mood": "",
-  "energy": 0.0,
-  "likes_acoustic": false
+  "genre": "ambient",
+  "mood": "moody",
+  "energy": 0.28,
+  "likes_acoustic": false,
+  "preferred_decade": null,
+  "preferred_mood_tag": "dreamy"
 }
 ```
 
-**AI Output:**
-```
-<!-- paste the recommendations and explanation the system returned -->
-```
+**Results direction — 10 songs returned:**
+- Majority: `ambient` and `lofi` genre, `moody` / `chill` mood, energy range 0.2–0.4
+- A few `indie pop` entries with dreamy mood tag appear in positions 6–10
+- MMR ensures no two consecutive songs share the same texture — e.g. a dense ambient pad track is followed by a sparse acoustic piece
 
 ---
 
-### Example 3 — Edge Case / Guardrail Triggered
+### Example 2 — Songs I've Heard Only
 
-**Input:**
-```
-<!-- paste an input that triggers a guardrail warning -->
+Only the **"Songs I've Heard"** add-on is active. Tags entered: `Frank Ocean`, `SZA`, `Daniel Caesar`, `Rex Orange County`.
+
+**Gemini infers preferences from these artists:**
+```json
+{
+  "genre": "r&b",
+  "mood": "chill",
+  "energy": 0.45,
+  "likes_acoustic": true,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "melancholic"
+}
 ```
 
-**AI Output:**
+**Results direction — 10 songs returned:**
+- Top 5: heavily `r&b` and `indie pop`, mid-tempo, acoustic-leaning, melancholic or nostalgic mood tags
+- Positions 6–10: slight genre spread introduced by MMR — one `folk`, one `lofi` entry that share the emotional register without being the same genre
+- Energy stays consistently in the 0.35–0.55 band across all 10
+
+---
+
+### Example 3 — All Three Combined (Profile + Prompt + Songs)
+
+All inputs active simultaneously. Gemini runs `synthesize_inputs()` to blend all three.
+
+**Profile set to:** `rock / intense / energy 0.8 / no acoustic / decade: 2010`
+
+**Prompt add-on:**
 ```
-<!-- paste the warning message and how the system handled it -->
+But I want something that builds slowly — not just heavy from the start. More of a journey than a punch.
 ```
+
+**Songs add-on:** `Radiohead`, `Explosions in the Sky`, `Sigur Rós`
+
+**Gemini synthesizes all three into a single refined profile:**
+```json
+{
+  "genre": "rock",
+  "mood": "intense",
+  "energy": 0.62,
+  "likes_acoustic": false,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "nostalgic"
+}
+```
+
+> Energy pulled down from 0.8 to 0.62 — the prompt and the referenced artists (known for slow-building post-rock) both signal that raw intensity is less important than emotional arc.
+
+**Results direction — 10 songs returned:**
+- Top positions: `rock` tracks with gradual dynamic structure, nostalgic or melancholic mood tags
+- MMR introduces variety: a couple of `ambient` tracks with rock textures break up the list rather than returning 10 near-identical post-rock songs
+- No track exceeds energy 0.75 — the synthesized profile's lower energy cap holds
+
+---
+
+### Example 4 — Feedback Loop (building on Example 3)
+
+The Example 3 results felt too slow. User clicks **👎 Not Satisfied**.
+
+**Feedback entered:**
+```
+These feel too slow and drifty. I want actual rock energy — guitars, drums, forward momentum. Still emotional but not ambient.
+```
+
+**Gemini runs `adjust_preferences()` and returns a diff:**
+```
+🔄 Adjusted:  energy: 0.62 → 0.82   mood_tag: nostalgic → energetic   genre: rock (confirmed)
+```
+
+```json
+{
+  "genre": "rock",
+  "mood": "intense",
+  "energy": 0.82,
+  "likes_acoustic": false,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "energetic"
+}
+```
+
+**New results direction — noticeably different from Example 3:**
+- Ambient-leaning tracks from Example 3 are gone — all 10 results now sit in `rock` or `metal` genre
+- Energy range shifts up to 0.7–0.9 across the list
+- Mood tags shift from `nostalgic / melancholic` to `energetic / aggressive`
+- The emotional quality remains (intense, not hollow) but the tempo and instrumentation are heavier throughout
 
 ---
 
 ## Design Decisions
 
-<!-- Why you built it this way. Cover: LLM choice, vector DB choice, why you kept the original re-ranker, what you deferred and why -->
-
 | Decision | Choice | Reason |
 |---|---|---|
-| LLM | Gemini | <!-- why --> |
-| Vector DB | Qdrant | <!-- why --> |
-| Re-ranker | `src/recommender.py` | <!-- why --> |
-| Deferred | Spotify Audio Features API | Deprecated for new apps |
+| LLM | Gemini 2.5 Flash | Free tier with generous quota, reliable JSON-mode output, and the `google-genai` SDK makes multi-turn structured calls straightforward. Flash specifically was chosen over Pro because latency matters more than raw capability for preference parsing — the tasks (parse, synthesize, explain, adjust) are all short structured outputs, not complex reasoning. |
+| Vector DB | Qdrant | Runs fully local via `QdrantClient(path=...)` with no Docker dependency — critical for a dev environment. Also supports a hosted cloud cluster by just swapping `QDRANT_URL` in `.env`, so scaling requires zero code changes. |
+| Embeddings | `all-MiniLM-L6-v2` (sentence-transformers) | 384-dim vectors, ~80 MB, runs on CPU in under 50ms per batch. No API key needed, no cost per call. The vector space is consistent for both songs and preference queries since both go through the same `_to_text()` serialization before encoding. |
+| Diversity | MMR over hard caps | The original hard cap (max 2 per genre) punished users who explicitly asked for a specific genre — if you want lofi, you should be able to get 4 lofi songs if they are all genuinely different. MMR solves this by penalizing semantic similarity rather than label repetition, so two near-identical lofi tracks get penalized while a lofi track with a different energy profile gets through. |
+| Re-ranker | `src/recommender.py` (Project 3) | The weighted scorer gives precise, explainable control over what matters most per request (scoring modes). Pure vector similarity alone would lose the ability to say "give me this exact mood and energy level." Keeping the scorer as Stage 2 means the system combines semantic retrieval (Qdrant) with rule-based precision (scorer) — each doing what it is best at. |
+| Feedback cap | 1 retry only | Allowing unlimited retries leads to prompt drift — each round Gemini adjusts based on the previous adjustment, not the original intent, and the profile can end up far from what the user actually wanted. One retry is enough to course-correct without losing the original signal. |
+| Deferred | Spotify Audio Features API | The `/audio-features` endpoint was deprecated for new app registrations in late 2024. Using it would block any new developer trying to run the project. The 102-song `songs.json` dataset was built manually with equivalent fields (`energy`, `valence`, `danceability`, `acousticness`, `tempo`) so the pipeline works identically. |
 
 ---
 
@@ -332,13 +404,6 @@ pytest tests/test_app.py -x
 ```
 
 > No API keys required — all external services (Gemini, Qdrant, embeddings) are mocked in `test_app.py`.
-
-**What worked:** <!-- fill in -->
-
-**What didn't work:** <!-- fill in -->
-
-**What you learned:** <!-- fill in -->
-
 ---
 
 ## Guardrails
