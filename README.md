@@ -30,29 +30,52 @@ The new version introduces reliable way to generate user profile, implements fee
 
 ![Architecture Diagram](assets/architecture.svg)
 
-<!-- Short explanation of how data flows through your system — user input → backend → AI layer → response -->
+**Step 1 — User provides input (one of three forms)**
+- **Profile** — structured sliders: genre, mood, energy, acoustic preference, decade, mood tag
+- **Custom prompt** — free text like *"something chill for a late night drive"*
+- **Song list** — names of songs or artists they have been listening to
 
-Step 1 :  User inputs the data
-            - there are three types of input
-                - User profile
-                - User custom prompt
-                - List of songs you have listened
-Step 2:  Backend receives the input
-            - Gemini takes data and builds a profile
+**Step 2 — Gemini parses the input into a structured preference profile**
+- Free text → `parse_preferences()` extracts genre, mood, energy, and other fields
+- Song list → `analyze_songs()` infers preferences from known artist/song characteristics
+- Profile + extras → `synthesize_inputs()` merges the base profile with the additional context
+- Output is always the same shape: a preference dict with 6 fields
 
-Step 3:  Guardrails check
+**Step 3 — Guardrails validate the generated profile**
+- Checks for known conflicts (e.g. classical + high energy, acoustic + high energy)
+- Flags unknown genres or moods that won't match catalog entries
+- Non-blocking — warnings are collected and returned alongside results, never refusing a request
 
-Step 4:  The profile is embedded
+**Step 4 — Preference profile is embedded into a vector**
+- `embed_preferences()` converts the preference dict into a 384-dimensional vector using a local sentence-transformer model (`all-MiniLM-L6-v2`)
+- No API call needed — the model runs locally
 
-Step 5:  The vector embeddings is sent to VectorDB 
+**Step 5 — Vector search retrieves the top 50 candidate songs from Qdrant**
+- The preference vector is compared against pre-embedded song vectors in Qdrant using cosine similarity
+- Returns the 50 most semantically similar songs as candidates
+- If Qdrant is unavailable, the full JSON catalog is used as a fallback
 
-Step 6:  Recommender.py reranks the returned results from Vector Search
+**Step 6 — Candidate songs are scored by `recommend_songs()`**
+- Each candidate is scored against the preference profile using weighted rules: genre, mood, energy proximity, acoustic preference, popularity, decade, and mood tag
+- Four scoring modes available: `balanced`, `genre_first`, `mood_first`, `energy_focused`
+- Returns a ranked list of 30, with diversity filter disabled so MMR has a wide pool to work with
 
-Step 7:  Re-ranks via MMR diversificatoin
+**Step 7 — MMR reranking diversifies the final list**
+- Maximum Marginal Relevance (MMR) picks the top 10 songs that balance relevance (high scorer score) with diversity (low similarity to already-selected songs)
+- Controlled by `lam=0.7` — slightly favors relevance over diversity
+- If MMR fails, falls back to the deterministic per-artist/per-genre diversity filter
 
-Step 8:  Results returned. 
+**Step 8 — Gemini generates natural language explanations**
+- Top 5 results get a one-sentence AI explanation: *why this song fits what you asked for*
+- Results 6–10 get the rule-based reason string from the scorer (e.g. `genre match, energy proximity +1.84`)
 
-Step 9:  If given feedback, the system repeats.
+**Step 9 — Results are returned to the frontend**
+- Response includes: ranked song list, per-song explanations, guardrail warnings, and the resolved preference profile
+
+**Step 10 — Feedback loop (optional)**
+- If the user is unsatisfied, they submit feedback (e.g. *"too energetic"*)
+- `adjust_preferences()` sends the original query, feedback, and current prefs to Gemini, which returns an updated profile and a diff showing what changed
+- The pipeline reruns with the adjusted profile
 
 
 ---
