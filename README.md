@@ -164,22 +164,91 @@ The app will be available at `http://localhost:5173`. The API runs on `http://lo
 
 ## Testing Summary
 
-| Test File | What It Covers | Result |
+MVI uses three layers of tests that mirror the architecture of the system.
+
+### Layer 1 — Routing Tests
+Basic endpoint checks with no external dependencies. Verifies that `/health`
+returns `200`, `/random-profile` returns all required keys, and that energy
+values stay within the valid `0.0–1.0` range. These run instantly and require
+no API keys or environment setup.
+
+### Layer 2 — Pipeline Tests (`_run_pipeline`)
+Tests the core logic of the system with all external services mocked
+(Gemini, Qdrant, sentence-transformers). Each test patches only what it
+needs and lets the real `recommend_songs` and `mmr_rerank` run. This layer
+covers:
+
+- **Happy path** — full flow returns `results` and `warnings`
+- **Top 5 explanations** — Gemini-generated sentences appear on results 1–5
+- **Results 6–10** — fall back to rule-based reasons from the scorer
+- **Qdrant down** — if embedding or vector search crashes, the system falls
+  back to the full JSON catalog without returning an error
+- **MMR failure** — if MMR reranking crashes, the system falls back to the
+  deterministic diversity filter in `recommend_songs`
+- **Guardrail warnings** — warnings from `validate_preferences` are
+  surfaced in the response, not swallowed
+
+### Layer 3 — Endpoint + Gemini Tests
+Tests each of the five API endpoints through FastAPI's `TestClient`, with
+Gemini mocked at the `server.app` import level. Covers:
+
+- `/recommend/from-text` — Gemini parses the query; crashes return `422`
+- `/recommend/from-songs` — Gemini infers preferences from song names; empty
+  list returns `422`
+- `/recommend/from-profile` — skips Gemini entirely; confirmed via
+  `assert_not_called()`
+- `/recommend/retry` — `adjust_preferences` result is passed back as `diff`
+  in the response
+- `/recommend` — calls `synthesize_inputs` only when a query or song list is
+  present; skips it for plain profile requests
+
+### Test Files
+
+| File | What It Covers |
+|---|---|
+| `tests/test_recommender.py` | Original scorer: sorting, scoring modes, diversity filter |
+| `tests/test_guardrails.py` | Preference validation edge cases |
+| `tests/test_app.py` | All three layers above (18 tests) |
+
+**What worked:** <!-- fill in -->
+
+**What didn't work:** <!-- fill in -->
+
+**What you learned:** <!-- fill in -->
+
+---
+
+## Guardrails
+
+MVI validates every generated preference profile before it reaches the vector
+search. The guardrail layer runs after Gemini parses the user's input and
+before the embedding is created. It is non-blocking — warnings are collected
+and returned to the frontend alongside the results, so the system never
+refuses a request.
+
+### What is checked
+
+| Check | Condition | Warning returned |
 |---|---|---|
-| `tests/test_recommender.py` | Original scorer logic | <!-- PASS/FAIL --> |
-| `tests/test_guardrails.py` | Edge case preference validation | <!-- PASS/FAIL --> |
+| Classical + high energy | `genre == "classical"` and `energy > 0.7` | Only 1 classical song in catalog, results may be poor |
+| Acoustic + high energy conflict | `likes_acoustic == True` and `energy > 0.8` | Most acoustic songs are low energy, results may conflict |
+| Unknown genre | `genre` not in the 15 known genres | Genre not in catalog, results may be empty |
+| Unknown mood | `mood` not in the 7 known moods | Mood may not match any songs directly |
+| Energy out of range | `energy` outside `0.0–1.0` | Energy must be between 0.0 and 1.0 |
 
-**What worked:**
+### Known genres
+`pop`, `lofi`, `rock`, `ambient`, `jazz`, `synthwave`, `indie pop`,
+`hip-hop`, `r&b`, `classical`, `edm`, `country`, `folk`, `reggae`, `metal`
 
-<!-- describe what performed well -->
+### Known moods
+`happy`, `chill`, `intense`, `relaxed`, `focused`, `moody`, `calm`
 
-**What didn't work:**
+### Why non-blocking
+A blocking guardrail would refuse requests when Gemini picks a valid-sounding
+but slightly off value. Since the catalog is small (edge cases like classical
+or metal only have a handful of songs), it is more useful to warn the user
+and show imperfect results than to return nothing.
 
-<!-- describe what fell short and why -->
-
-**What you learned:**
-
-<!-- key takeaway from testing -->
 
 ---
 
