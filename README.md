@@ -80,6 +80,74 @@ The new version introduces reliable way to generate user profile, implements fee
 
 ---
 
+## Project Structure
+
+```
+final-project-a110/
+│
+├── ── PROJECT 3  (original rule-based recommender — unchanged) ──────────────
+│
+├── src/
+│   ├── recommender.py          # weighted scorer · 4 modes · diversity filter
+│   └── main.py                 # original CLI entry point (no longer used)
+│
+├── data/
+│   └── songs.csv               # original 18-song dataset
+│
+├── tests/
+│   └── test_recommender.py     # unit tests for scorer and explain_recommendation
+│
+├── image/                      # screenshots from Project 3 submission
+│
+│
+├── ── PROJECT 4  (AI layer · API · frontend — all new) ──────────────────────
+│
+├── ai/
+│   ├── guardrails.py           # preference validation → warnings[]
+│   ├── embeddings.py           # sentence-transformers wrapper + MMR reranker
+│   ├── qdrant_db.py            # Qdrant vector search (local embedded or cloud)
+│   └── gemini.py               # Gemini 2.5 Flash: synthesize · explain · adjust
+│
+├── server/
+│   └── app.py                  # FastAPI: POST /recommend · /recommend/retry
+│                               #          GET  /random-profile · /health
+│
+├── scripts/
+│   └── build_index.py          # one-time: embeds songs.json → Qdrant index
+│
+├── data/
+│   └── new_data/
+│       └── songs.json          # 102-song dataset · 15 genres · 7 moods · 9 mood tags
+│
+├── client/                     # React + Vite frontend
+│   └── src/
+│       ├── App.jsx             # state management · submit · retry flow
+│       ├── services/
+│       │   └── api.js          # fetch wrappers for /recommend + /recommend/retry
+│       └── components/
+│           ├── Header.jsx
+│           ├── InputPanel.jsx  # profile panel + optional add-ons (describe / songs)
+│           ├── ResultsPanel.jsx# 10 song cards · score bars · AI explanations
+│           └── FeedbackDialog.jsx # 👎 → free-text feedback → retry
+│
+├── tests/
+│   ├── test_guardrails.py      # 5 guardrail edge-case tests
+│   └── test_app.py             # FastAPI endpoint + pipeline tests (18 tests)
+│
+├── assets/
+│   └── architecture.svg        # system architecture diagram
+│
+├── .env                        # GEMINI_API_KEY · QDRANT_URL · QDRANT_API_KEY
+├── requirements.txt            # updated: fastapi · uvicorn · google-genai
+│                               #          qdrant-client · sentence-transformers
+└── tech_stack.md
+```
+
+> `src/recommender.py` is the only Project 3 file that Project 4 actively calls.
+> It acts as Stage 2 of the pipeline — re-ranking the top-30 candidates returned by Qdrant.
+
+---
+
 ## Setup Instructions
 
 ### Prerequisites
@@ -120,6 +188,15 @@ npm run dev
 ```
 
 The app will be available at `http://localhost:5173`. The API runs on `http://localhost:8000`.
+
+---
+
+## Video Demo
+
+| Part | Link |
+|---|---|
+| Part 1 — Overview & Setup | [Watch on Loom](https://www.loom.com/share/cccd4abcf74d487e987b85fd2310ab80) |
+| Part 2 — Features & Feedback Loop | [Watch on Loom](https://www.loom.com/share/7908f5a14cd74884b1dcf1000e060d45) |
 
 ---
 

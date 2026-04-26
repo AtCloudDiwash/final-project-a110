@@ -26,9 +26,11 @@ from ai.gemini import (
 
 app = FastAPI(title="Music Viber AI")
 
+_allowed_origins = os.environ.get("ALLOWED_ORIGIN", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
