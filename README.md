@@ -202,149 +202,121 @@ The app will be available at `http://localhost:5173`. The API runs on `http://lo
 
 ## Sample Interactions
 
-### Example 1 — Natural Language Description Add-on
+### Example 1 — Text Prompt Only
 
-Profile set to lofi / chill / energy 0.3, then the **"Describe what you want"** add-on is toggled on.
+Only the **"Describe what you want"** add-on is active. No profile sliders, no song list.
 
 **Input:**
 ```
-Something calm and dreamy to study to late at night — no lyrics, just atmosphere.
+Something moody and cinematic for a rainy evening — music that feels like watching a city through a window.
 ```
 
-Gemini synthesizes the add-on text with the base profile and refines it:
-
-**Resolved preference profile:**
+**Gemini extracts this into a preference profile:**
 ```json
 {
-  "genre": "lofi",
-  "mood": "chill",
-  "energy": 0.25,
-  "likes_acoustic": true,
+  "genre": "ambient",
+  "mood": "moody",
+  "energy": 0.28,
+  "likes_acoustic": false,
   "preferred_decade": null,
   "preferred_mood_tag": "dreamy"
 }
 ```
 
-**Top 3 results (with AI explanations):**
-```
-#1  Rainfall Study Session – Cozy Beats Co.   [lofi]  score 9.4
-    ✦ Gentle rain textures and slow tempo match your late-night, no-distraction vibe perfectly.
-
-#2  Midnight Pages – Lo-fi Cafe               [lofi]  score 8.9
-    ✦ Soft piano loops with dreamy pads are ideal for deep focus without lyrics pulling attention.
-
-#3  Floating Thoughts – ChillHop Collective   [ambient]  score 8.1
-    ✦ Ambient drones and minimal percussion create exactly the atmospheric, no-lyric study space you described.
-```
+**Results direction — 10 songs returned:**
+- Majority: `ambient` and `lofi` genre, `moody` / `chill` mood, energy range 0.2–0.4
+- A few `indie pop` entries with dreamy mood tag appear in positions 6–10
+- MMR ensures no two consecutive songs share the same texture — e.g. a dense ambient pad track is followed by a sparse acoustic piece
 
 ---
 
-### Example 2 — Structured Profile Input Only (no add-ons)
+### Example 2 — Songs I've Heard Only
 
-No add-ons active — Gemini is skipped entirely, profile goes straight into the pipeline.
+Only the **"Songs I've Heard"** add-on is active. Tags entered: `Frank Ocean`, `SZA`, `Daniel Caesar`, `Rex Orange County`.
 
-**Input profile:**
+**Gemini infers preferences from these artists:**
 ```json
 {
-  "genre": "synthwave",
-  "mood": "focused",
-  "energy": 0.75,
-  "likes_acoustic": false,
-  "preferred_decade": 1980,
-  "preferred_mood_tag": "energetic"
-}
-```
-
-**Top 3 results:**
-```
-#1  Neon Grid – Retrowave Drive               [synthwave]  score 10.2
-    ✦ Heavy synth arpeggios and 80s production style hit every point of your profile.
-
-#2  Chrome and Circuits – Digital Horizon     [synthwave]  score 9.6
-    ✦ Driving bassline and retro-futuristic pads match your high-energy, focused 80s preference.
-
-#3  Laser Highway – Synth City                [edm]  score 7.8
-    ✦ High-BPM energy and electronic texture keep momentum even though it drifts slightly from pure synthwave.
-```
-
----
-
-### Example 3 — Guardrail Triggered
-
-Profile submitted with `genre: classical` and `energy: 0.9`.
-
-**Input profile:**
-```json
-{
-  "genre": "classical",
-  "mood": "intense",
-  "energy": 0.9,
+  "genre": "r&b",
+  "mood": "chill",
+  "energy": 0.45,
   "likes_acoustic": true,
-  "preferred_decade": null,
-  "preferred_mood_tag": null
-}
-```
-
-**Response — warnings banner shown in UI:**
-```
-⚠  Classical + high energy: only 1 classical song in catalog, results may be poor.
-⚠  Acoustic + high energy conflict: most acoustic songs are low energy.
-```
-
-The system still returns results — it does not block. The top result is the single classical track in the catalog; remaining slots are filled by the next-closest matches (ambient, folk) since no other classical songs exist.
-
----
-
-### Example 4 — Feedback Loop (Retry)
-
-Initial request returns rock / intense results. User clicks **👎 Not Satisfied** and types feedback.
-
-**Initial profile:**
-```json
-{
-  "genre": "rock",
-  "mood": "intense",
-  "energy": 0.85,
-  "likes_acoustic": false,
-  "preferred_decade": 2010,
-  "preferred_mood_tag": "aggressive"
-}
-```
-
-**User feedback:**
-```
-These are too aggressive and loud. I want something intense but more melodic — like rock but with emotion.
-```
-
-Gemini runs `adjust_preferences()` and returns an updated profile with a diff:
-
-**Adjusted profile + diff banner shown in UI:**
-```
-🔄 Adjusted:  mood_tag: aggressive → melancholic   energy: 0.85 → 0.65   mood: intense → moody
-```
-
-```json
-{
-  "genre": "rock",
-  "mood": "moody",
-  "energy": 0.65,
-  "likes_acoustic": false,
   "preferred_decade": 2010,
   "preferred_mood_tag": "melancholic"
 }
 ```
 
-**New top 3 results:**
-```
-#1  The Weight of Wings – Atlas Sound         [rock]  score 9.1
-    ✦ Emotional guitar work and moody dynamics match your shift toward melodic intensity.
+**Results direction — 10 songs returned:**
+- Top 5: heavily `r&b` and `indie pop`, mid-tempo, acoustic-leaning, melancholic or nostalgic mood tags
+- Positions 6–10: slight genre spread introduced by MMR — one `folk`, one `lofi` entry that share the emotional register without being the same genre
+- Energy stays consistently in the 0.35–0.55 band across all 10
 
-#2  Broken Frequencies – Hollow Ground        [indie pop]  score 8.4
-    ✦ Slower, textured rock with melancholic vocals fits the emotional but not aggressive direction.
+---
 
-#3  Glass Roads – The Still                   [rock]  score 8.0
-    ✦ Mid-tempo rock with strong melodic hooks — intense without being abrasive.
+### Example 3 — All Three Combined (Profile + Prompt + Songs)
+
+All inputs active simultaneously. Gemini runs `synthesize_inputs()` to blend all three.
+
+**Profile set to:** `rock / intense / energy 0.8 / no acoustic / decade: 2010`
+
+**Prompt add-on:**
 ```
+But I want something that builds slowly — not just heavy from the start. More of a journey than a punch.
+```
+
+**Songs add-on:** `Radiohead`, `Explosions in the Sky`, `Sigur Rós`
+
+**Gemini synthesizes all three into a single refined profile:**
+```json
+{
+  "genre": "rock",
+  "mood": "intense",
+  "energy": 0.62,
+  "likes_acoustic": false,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "nostalgic"
+}
+```
+
+> Energy pulled down from 0.8 to 0.62 — the prompt and the referenced artists (known for slow-building post-rock) both signal that raw intensity is less important than emotional arc.
+
+**Results direction — 10 songs returned:**
+- Top positions: `rock` tracks with gradual dynamic structure, nostalgic or melancholic mood tags
+- MMR introduces variety: a couple of `ambient` tracks with rock textures break up the list rather than returning 10 near-identical post-rock songs
+- No track exceeds energy 0.75 — the synthesized profile's lower energy cap holds
+
+---
+
+### Example 4 — Feedback Loop (building on Example 3)
+
+The Example 3 results felt too slow. User clicks **👎 Not Satisfied**.
+
+**Feedback entered:**
+```
+These feel too slow and drifty. I want actual rock energy — guitars, drums, forward momentum. Still emotional but not ambient.
+```
+
+**Gemini runs `adjust_preferences()` and returns a diff:**
+```
+🔄 Adjusted:  energy: 0.62 → 0.82   mood_tag: nostalgic → energetic   genre: rock (confirmed)
+```
+
+```json
+{
+  "genre": "rock",
+  "mood": "intense",
+  "energy": 0.82,
+  "likes_acoustic": false,
+  "preferred_decade": 2010,
+  "preferred_mood_tag": "energetic"
+}
+```
+
+**New results direction — noticeably different from Example 3:**
+- Ambient-leaning tracks from Example 3 are gone — all 10 results now sit in `rock` or `metal` genre
+- Energy range shifts up to 0.7–0.9 across the list
+- Mood tags shift from `nostalgic / melancholic` to `energetic / aggressive`
+- The emotional quality remains (intense, not hollow) but the tempo and instrumentation are heavier throughout
 
 ---
 
