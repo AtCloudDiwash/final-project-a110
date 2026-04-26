@@ -117,7 +117,7 @@ final-project-a110/
 │
 ├── data/
 │   └── new_data/
-│       └── songs.json          # 102-song dataset · 15 genres · 7 moods · 9 mood tags
+│       └── songs.json          # 102-song dataset · 15 genres · 7 moods · 9 mood tags (and expanding)
 │
 ├── client/                     # React + Vite frontend
 │   └── src/
