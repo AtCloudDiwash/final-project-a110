@@ -25,6 +25,8 @@ def ensure_collection(client: QdrantClient) -> None:
         )
 
 
+#Action: insertion of the embedded records
+
 def upsert_songs(songs: list[dict], vectors: list[list[float]]) -> None:
     client = get_client()
     ensure_collection(client)
@@ -34,6 +36,8 @@ def upsert_songs(songs: list[dict], vectors: list[list[float]]) -> None:
     ]
     client.upsert(collection_name=COLLECTION, points=points)
 
+
+# Action: Vector search in the remote qdrant cluster called music_viber
 
 def search_songs(vector: list[float], top_k: int = 50) -> list[dict]:
     client = get_client()

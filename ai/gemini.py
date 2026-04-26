@@ -16,6 +16,9 @@ KNOWN_MOOD_TAGS = [
     "dreamy", "nostalgic", "melancholic", "uplifting",
 ]
 
+
+#Description: This is used when the user provides query while seeking recommendation
+
 _PARSE_SYSTEM = f"""You are a music preference parser. Given a user's natural language description,
 extract their music preferences and return ONLY a valid JSON object with these exact keys:
 - genre: one of {KNOWN_GENRES}
@@ -26,6 +29,8 @@ extract their music preferences and return ONLY a valid JSON object with these e
 - preferred_mood_tag: one of {KNOWN_MOOD_TAGS} or null
 
 Return only the JSON object. No explanation, no markdown, no code blocks."""
+
+#Description: This is used only when the user provides the music they have listened
 
 _ANALYZE_SYSTEM = f"""You are a music analyst. Given a list of songs or artists the user has listened to,
 infer their music preferences and return ONLY a valid JSON object with these exact keys:
@@ -84,18 +89,18 @@ def analyze_songs(song_names: list[str]) -> dict:
     return _parse_json_response(response.text)
 
 
-def generate_explanations(user_input: str, top3: list[dict]) -> list[str]:
+def generate_explanations(user_input: str, top_songs: list[dict], n: int = 5) -> list[str]:
     client = _get_client()
     songs_text = "\n".join(
         f"{i+1}. {s['song']['title']} by {s['song']['artist']} "
         f"(score: {s['score']:.2f}, reasons: {s['reasons']})"
-        for i, s in enumerate(top3)
+        for i, s in enumerate(top_songs)
     )
     system = (
         "You are a music recommendation assistant. "
         "Given what the user wants and a list of recommended songs, "
         "write one short conversational sentence (max 20 words) explaining why each song fits. "
-        "Return a JSON array of exactly 3 strings, one per song. No markdown, no code blocks."
+        f"Return a JSON array of exactly {n} strings, one per song. No markdown, no code blocks."
     )
     prompt = f"User wants: {user_input}\n\nRecommended songs:\n{songs_text}"
     response = client.models.generate_content(
@@ -105,13 +110,13 @@ def generate_explanations(user_input: str, top3: list[dict]) -> list[str]:
     )
     try:
         explanations = json.loads(response.text.strip())
-        if isinstance(explanations, list) and len(explanations) >= 3:
-            return [str(e) for e in explanations[:3]]
+        if isinstance(explanations, list) and len(explanations) >= n:
+            return [str(e) for e in explanations[:n]]
     except (json.JSONDecodeError, TypeError):
         pass
-    return [s["reasons"] for s in top3]
+    return [s["reasons"] for s in top_songs]
 
-
+#Description: The function combines the user profile data, user description, and list of songs heard by user to recommend
 def synthesize_inputs(
     profile: dict,
     query: str | None = None,
@@ -145,6 +150,8 @@ No explanation, no markdown, no code blocks."""
     )
     return _parse_json_response(response.text)
 
+
+#Description: Only runs after when the user calls for the feedback recommendation
 
 def adjust_preferences(
     original_query: str,
