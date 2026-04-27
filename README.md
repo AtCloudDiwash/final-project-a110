@@ -325,7 +325,7 @@ These feel too slow and drifty. I want actual rock energy — guitars, drums, fo
   "preferred_mood_tag": "energetic"
 }
 ```
-
+![Feedback retry results showing folk, jazz, country replacing rock and classical](assets/example4_1.png)
 ![Feedback retry results showing folk, jazz, country replacing rock and classical](assets/example4_2.png)
 
 > **⚠ Guardrails fired on this retry.**
