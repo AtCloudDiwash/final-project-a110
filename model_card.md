@@ -30,6 +30,7 @@ The catalog is 102 songs stored in `data/new_data/songs.json`. Each song has: `t
 - **Semantic retrieval:** Qdrant finds songs that are close in the embedding space even when genre labels do not match exactly, which reduces the filter bubble effect of the original rule-based version.
 - **Explainability:** every result comes with either a Gemini-written sentence or a rule-based breakdown of which scoring factors fired, so the user always knows why a song was returned.
 - **Feedback loop:** one retry with free-text feedback is enough to meaningfully shift the results — the diff banner shows exactly what changed.
+- **Relation between genres:** Previous implementation of this project did not consider relation between genres, which is improved in this system. Gemini is sytem prompted to consider the relation between genres, which also improves the diversity.
 
 ---
 
