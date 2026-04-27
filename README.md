@@ -326,11 +326,18 @@ These feel too slow and drifty. I want actual rock energy — guitars, drums, fo
 }
 ```
 
-**New results direction — noticeably different from Example 3:**
-- Ambient-leaning tracks from Example 3 are gone — all 10 results now sit in `rock` or `metal` genre
-- Energy range shifts up to 0.7–0.9 across the list
-- Mood tags shift from `nostalgic / melancholic` to `energetic / aggressive`
-- The emotional quality remains (intense, not hollow) but the tempo and instrumentation are heavier throughout
+![Feedback retry results showing folk, jazz, country replacing rock and classical](assets/example4_2.png)
+
+> **⚠ Guardrails fired on this retry.**
+> The warning banner at the top reads:
+> - *"Genre 'lo-fi indie' is not in the catalog — results may be empty."*
+> - *"Mood 'intimate' may not match any songs directly."*
+>
+> This happened because Gemini interpreted "personal and small-scale" as `mood: intimate` and `genre: lo-fi indie` — neither of which exists in the catalog's known values. The guardrail layer caught both mismatches before the pipeline ran and surfaced them as non-blocking warnings. The system still returned results rather than failing, falling back to the closest semantic matches in the vector index.
+
+**What changed from Example 3:**
+
+Every rock and classical song is gone. The entire list flipped to `folk`, `jazz`, `country`, and `hip-hop` — genres that share the acoustic, small-scale, personal quality the feedback described. The top result shifted from Storm Concerto No.3 (classical/intense, 7.2) to River Year (folk/moody, 7.7). Energy dropped significantly — the list now sits in a low-to-mid range consistent with bedroom and acoustic music. Mood across all results is `moody` rather than `intense`. The guardrail warnings are visible proof that Gemini pushed the adjustment hard enough to land outside the catalog's known vocabulary, and the system handled it gracefully without returning an error.
 
 ---
 
