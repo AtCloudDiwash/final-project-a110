@@ -152,7 +152,10 @@ final-project-a110/
 
 ### Prerequisites
 
-<!-- List anything that needs to be installed first (Python version, Node, Docker, etc.) -->
+- Python 3.11 or higher
+- Node.js 18 or higher
+- A Gemini API key — get one free at [aistudio.google.com](https://aistudio.google.com)
+- _(Optional)_ A Qdrant Cloud cluster — if not set, the system runs Qdrant locally with no extra setup
 
 ### Backend
 
@@ -324,13 +327,12 @@ These feel too slow and drifty. I want actual rock energy — guitars, drums, fo
 
 | Decision | Choice | Reason |
 |---|---|---|
-| LLM | Gemini 2.5 Flash | Free tier with generous quota, reliable JSON-mode output, and the `google-genai` SDK makes multi-turn structured calls straightforward. Flash specifically was chosen over Pro because latency matters more than raw capability for preference parsing — the tasks (parse, synthesize, explain, adjust) are all short structured outputs, not complex reasoning. |
-| Vector DB | Qdrant | Runs fully local via `QdrantClient(path=...)` with no Docker dependency — critical for a dev environment. Also supports a hosted cloud cluster by just swapping `QDRANT_URL` in `.env`, so scaling requires zero code changes. |
-| Embeddings | `all-MiniLM-L6-v2` (sentence-transformers) | 384-dim vectors, ~80 MB, runs on CPU in under 50ms per batch. No API key needed, no cost per call. The vector space is consistent for both songs and preference queries since both go through the same `_to_text()` serialization before encoding. |
-| Diversity | MMR over hard caps | The original hard cap (max 2 per genre) punished users who explicitly asked for a specific genre — if you want lofi, you should be able to get 4 lofi songs if they are all genuinely different. MMR solves this by penalizing semantic similarity rather than label repetition, so two near-identical lofi tracks get penalized while a lofi track with a different energy profile gets through. |
-| Re-ranker | `src/recommender.py` (Project 3) | The weighted scorer gives precise, explainable control over what matters most per request (scoring modes). Pure vector similarity alone would lose the ability to say "give me this exact mood and energy level." Keeping the scorer as Stage 2 means the system combines semantic retrieval (Qdrant) with rule-based precision (scorer) — each doing what it is best at. |
-| Feedback cap | 1 retry only | Allowing unlimited retries leads to prompt drift — each round Gemini adjusts based on the previous adjustment, not the original intent, and the profile can end up far from what the user actually wanted. One retry is enough to course-correct without losing the original signal. |
-| Deferred | Spotify Audio Features API | The `/audio-features` endpoint was deprecated for new app registrations in late 2024. Using it would block any new developer trying to run the project. The 102-song `songs.json` dataset was built manually with equivalent fields (`energy`, `valence`, `danceability`, `acousticness`, `tempo`) so the pipeline works identically. |
+| LLM | Gemini 2.5 Flash | Free tier, fast, reliable JSON output for short structured tasks. |
+| Vector DB | Qdrant | Works locally without Docker (`QdrantClient(path=...)`), also supports cloud with just an env var swap. |
+| Embeddings | `all-MiniLM-L6-v2` | Runs locally, no API key, fast on CPU. Both songs and preferences use the same text format so the vector space is consistent. |
+| Diversity | MMR over hard caps | Hard caps punish users who asked for a specific genre. MMR penalizes semantic similarity instead, so two nearly identical songs are penalized even if they have different labels. |
+| Re-ranker | `src/recommender.py` | Keeps the deterministic scorer from Project 3 as Stage 2. Vector search handles broad retrieval; the scorer handles precision on mood, energy, and genre. |
+| Feedback cap | 1 retry | Unlimited retries cause the profile to drift away from the original intent. One correction is enough. |
 
 ---
 
@@ -442,4 +444,17 @@ and show imperfect results than to return nothing.
 
 ## Reflection
 
-<!-- What this project taught you about AI and problem-solving. Be honest and specific — this is the section employers actually read. -->
+AI shaped this project in ways I didn't expect going in. The guardrail logic and MMR diversification were both ideas that came out of conversations with Claude — I knew the hard genre cap was too blunt but didn't have a name for the alternative until MMR came up. The synthetic song dataset was also AI-generated, which saved a significant amount of time compared to curating 100+ songs by hand.
+
+The biggest concrete improvement AI suggested was reducing Gemini API calls. My original design was calling Gemini at almost every stage, which was slow and expensive. After working through the architecture, the number of calls came down to one per request for the main flow: `synthesize_inputs` when add-ons are active, `generate_explanations` for the top 5, and `adjust_preferences` only on retry. That restructuring made the system noticeably faster and easier to reason about.
+
+Working with AI also taught me that vagueness doesn't work. When I described the system at a high level, the suggestions were generic. When I said something like "make a request to the Qdrant cluster, return top 50 candidates, then pass them to a deterministic scoring function" — that's when it produced something useful. The more specific the constraint, the better the output.
+
+In practice, I used AI as a coder and myself as the driver. Test cases, frontend components, and boilerplate were almost entirely AI-written. The architectural decisions like what gets called, in what order, and why were mine. That division worked well. Where it broke down was when I left too much ambiguity and had to backtrack and re-explain the system design from scratch.
+
+There were also cases where AI got it wrong. It initially suggested running Qdrant by installing it locally on the machine and also pointed to an older Google SDK that has since been deprecated. The correct package is `google-genai` and it took some back and forth to get there. A more subtle problem was in the feedback loop. Claude wrote it so that every retry would carry the full conversation history forward — the original request, then the first feedback with the previous query, then the second feedback with both of those, and so on. A few retries in and the context window would hit an API error. I caught that and fixed it by limiting feedback to a single retry, passing only the original query, the feedback text, and the current preference profile. Nothing accumulates.
+
+The system has real limitations. The catalog is only 102 songs and comes from a single source, so MMR diversity can only do so much with a small pool. There is no user session storage, so preferences reset every visit and the system has no memory of past taste choices. The whole AI layer relies on system prompt engineering — if Gemini drifts from the expected JSON format, the system silently falls back to rule-based reasons without telling the user. Future improvements would focus on expanding the catalog with a larger dataset like Kaggle's Spotify collection, storing user sessions to build a taste profile over time, and enforcing structured JSON output from Gemini to eliminate silent degradation.
+
+AI is a good companion for coders, but only if the coder knows how to describe the problem in detail. There were moments where I had to debug the code myself and guide Claude more precisely.
+
