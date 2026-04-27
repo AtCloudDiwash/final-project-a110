@@ -462,7 +462,7 @@ and show imperfect results than to return nothing.
 
 ## Reflection
 
-AI shaped this project in ways I didn't expect going in. The guardrail logic and MMR diversification were both ideas that came out of conversations with Claude — I knew the hard genre cap was too blunt but didn't have a name for the alternative until MMR came up. The synthetic song dataset was also AI-generated, which saved a significant amount of time compared to curating 100+ songs by hand.
+ The guardrail logic and MMR diversification were both ideas that came out of conversations with Claude — I knew the hard genre cap was too blunt but didn't have a name for the alternative until MMR came up. The synthetic song dataset was also AI-generated, which saved a significant amount of time compared to curating 100+ songs by hand.
 
 The biggest concrete improvement AI suggested was reducing Gemini API calls. My original design was calling Gemini at almost every stage, which was slow and expensive. After working through the architecture, the number of calls came down to one per request for the main flow: `synthesize_inputs` when add-ons are active, `generate_explanations` for the top 5, and `adjust_preferences` only on retry. That restructuring made the system noticeably faster and easier to reason about.
 
