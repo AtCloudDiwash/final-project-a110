@@ -26,6 +26,24 @@ The new version introduces reliable way to generate user profile, implements fee
 
 ---
 
+## Stretch Features
+
+These go beyond what the base rubric required.
+
+| Feature | What it does |
+|---|---|
+| **React + Vite frontend** | Full browser UI with profile sliders, toggleable add-on cards, score bars, and AI explanation badges — replaces the CLI |
+| **FastAPI REST API** | Proper HTTP server (`POST /recommend`, `POST /recommend/retry`, `GET /random-profile`) instead of a script |
+| **Qdrant vector search (RAG)** | Pre-embedded song catalog queried at runtime via cosine similarity — the top 50 semantic matches become candidates before scoring |
+| **MMR diversity reranking** | Maximum Marginal Relevance replaces the hard per-genre cap; uses 384-dim embeddings to penalise semantic duplicates rather than label repetition |
+| **Three-way input synthesis** | `synthesize_inputs()` blends a structured profile, a free-text description, and a list of artists into one preference dict in a single Gemini call |
+| **Agentic feedback loop** | User can reject results, type free-text feedback, and get an adjusted recommendation with a diff banner showing exactly what changed (`energy: 0.62 → 0.82`) |
+| **10 results with tiered explanations** | Returns 10 songs; top 5 get Gemini-written sentences, positions 6–10 fall back to rule-based reasons |
+| **Qdrant Cloud support** | Set `QDRANT_URL` + `QDRANT_API_KEY` in `.env` to switch from local embedded mode to a hosted cluster — no code change required |
+| **102-song catalog** | Expanded from the original 18 songs; all 15 genres, 7 moods, and 9 mood tags have multiple representatives so no preference hits a dead end |
+
+---
+
 ## Architecture Overview
 
 ![Architecture Diagram](assets/architecture.svg)
@@ -233,60 +251,53 @@ Something moody and cinematic for a rainy evening — music that feels like watc
 
 ---
 
-### Example 2 — Songs I've Heard Only
+### Example 2 — Profile Input Only (no add-ons)
 
-Only the **"Songs I've Heard"** add-on is active. Tags entered: `Frank Ocean`, `SZA`, `Daniel Caesar`, `Rex Orange County`.
+Only the profile sliders are used. Both add-on cards are off. Gemini is skipped entirely — the profile dict goes straight into the pipeline.
 
-**Gemini infers preferences from these artists:**
-```json
-{
-  "genre": "r&b",
-  "mood": "chill",
-  "energy": 0.45,
-  "likes_acoustic": true,
-  "preferred_decade": 2010,
-  "preferred_mood_tag": "melancholic"
-}
-```
+**Profile set to:** `rock / intense / energy 0.70 / acoustic`
 
-**Results direction — 10 songs returned:**
-- Top 5: heavily `r&b` and `indie pop`, mid-tempo, acoustic-leaning, melancholic or nostalgic mood tags
-- Positions 6–10: slight genre spread introduced by MMR — one `folk`, one `lofi` entry that share the emotional register without being the same genre
-- Energy stays consistently in the 0.35–0.55 band across all 10
+No Gemini call is made. The raw profile is embedded and queried against Qdrant directly.
+
+![Profile-only results showing rock and moody songs with high scores](assets/example2_1.png)
+![Profile-only results showing rock and moody songs with high scores](assets/example2_2.png)
+
+The screenshot shows the results panel after submitting the profile alone. Every result sits in the `rock` or `moody` category and scores are high (8.7 at #1) because the profile maps cleanly to multiple songs in the catalog. The top 5 all carry Gemini-written ✦ explanations. Position #7 shows a `classical / intense` entry — Storm Concerto No.3 — which scored lower here but becomes relevant in Example 3 when the cinematic prompt is added.
 
 ---
 
 ### Example 3 — All Three Combined (Profile + Prompt + Songs)
 
-All inputs active simultaneously. Gemini runs `synthesize_inputs()` to blend all three.
+All three inputs active. Gemini runs `synthesize_inputs()` to blend the profile, the text description, and the artist list into one refined preference dict.
 
-**Profile set to:** `rock / intense / energy 0.8 / no acoustic / decade: 2010`
+**Profile:** `rock / intense / energy 0.70 / acoustic`
 
 **Prompt add-on:**
 ```
-But I want something that builds slowly — not just heavy from the start. More of a journey than a punch.
+Something that builds tension and feels cinematic — like a final scene in a movie.
 ```
 
-**Songs add-on:** `Radiohead`, `Explosions in the Sky`, `Sigur Rós`
+**Songs add-on:** `Radiohead`, `Muse`, `Arctic Monkeys`, `The National`, `Nine Inch Nails`
 
 **Gemini synthesizes all three into a single refined profile:**
 ```json
 {
   "genre": "rock",
   "mood": "intense",
-  "energy": 0.62,
+  "energy": 0.65,
   "likes_acoustic": false,
   "preferred_decade": 2010,
-  "preferred_mood_tag": "nostalgic"
+  "preferred_mood_tag": "melancholic"
 }
 ```
 
-> Energy pulled down from 0.8 to 0.62 — the prompt and the referenced artists (known for slow-building post-rock) both signal that raw intensity is less important than emotional arc.
+> The "cinematic" prompt combined with artists like Radiohead and The National — known for orchestral and emotionally heavy music — pulled the synthesis away from raw rock intensity toward something more dramatic and atmospheric. `likes_acoustic` was dropped and `mood_tag` shifted to `melancholic`.
 
-**Results direction — 10 songs returned:**
-- Top positions: `rock` tracks with gradual dynamic structure, nostalgic or melancholic mood tags
-- MMR introduces variety: a couple of `ambient` tracks with rock textures break up the list rather than returning 10 near-identical post-rock songs
-- No track exceeds energy 0.75 — the synthesized profile's lower energy cap holds
+![Combined input results with Storm Concerto No.3 at top](assets/example3_1.png)
+![Combined input results with Storm Concerto No.3 at top](assets/example3_2.png)
+
+
+The screenshot shows how the results changed from Example 2. **Storm Concerto No.3** (classical/intense) jumped from position #7 all the way to **#1** — the cinematic prompt and the referenced artists gave the orchestral track enough signal to outrank the pure rock songs. Overall scores dropped from 8.7 to 7.2 at the top because the synthesized profile is now a blend rather than a direct rock match. Positions #2 onwards still return rock entries, but the list now has a more dramatic, tension-building quality that the profile alone would not have produced.
 
 ---
 
@@ -314,12 +325,19 @@ These feel too slow and drifty. I want actual rock energy — guitars, drums, fo
   "preferred_mood_tag": "energetic"
 }
 ```
+![Feedback retry results showing folk, jazz, country replacing rock and classical](assets/example4_1.png)
+![Feedback retry results showing folk, jazz, country replacing rock and classical](assets/example4_2.png)
 
-**New results direction — noticeably different from Example 3:**
-- Ambient-leaning tracks from Example 3 are gone — all 10 results now sit in `rock` or `metal` genre
-- Energy range shifts up to 0.7–0.9 across the list
-- Mood tags shift from `nostalgic / melancholic` to `energetic / aggressive`
-- The emotional quality remains (intense, not hollow) but the tempo and instrumentation are heavier throughout
+> **⚠ Guardrails fired on this retry.**
+> The warning banner at the top reads:
+> - *"Genre 'lo-fi indie' is not in the catalog — results may be empty."*
+> - *"Mood 'intimate' may not match any songs directly."*
+>
+> This happened because Gemini interpreted "personal and small-scale" as `mood: intimate` and `genre: lo-fi indie` — neither of which exists in the catalog's known values. The guardrail layer caught both mismatches before the pipeline ran and surfaced them as non-blocking warnings. The system still returned results rather than failing, falling back to the closest semantic matches in the vector index.
+
+**What changed from Example 3:**
+
+Every rock and classical song is gone. The entire list flipped to `folk`, `jazz`, `country`, and `hip-hop` — genres that share the acoustic, small-scale, personal quality the feedback described. The top result shifted from Storm Concerto No.3 (classical/intense, 7.2) to River Year (folk/moody, 7.7). Energy dropped significantly — the list now sits in a low-to-mid range consistent with bedroom and acoustic music. Mood across all results is `moody` rather than `intense`. The guardrail warnings are visible proof that Gemini pushed the adjustment hard enough to land outside the catalog's known vocabulary, and the system handled it gracefully without returning an error.
 
 ---
 
@@ -444,7 +462,7 @@ and show imperfect results than to return nothing.
 
 ## Reflection
 
-AI shaped this project in ways I didn't expect going in. The guardrail logic and MMR diversification were both ideas that came out of conversations with Claude — I knew the hard genre cap was too blunt but didn't have a name for the alternative until MMR came up. The synthetic song dataset was also AI-generated, which saved a significant amount of time compared to curating 100+ songs by hand.
+ The guardrail logic and MMR diversification were both ideas that came out of conversations with Claude — I knew the hard genre cap was too blunt but didn't have a name for the alternative until MMR came up. The synthetic song dataset was also AI-generated, which saved a significant amount of time compared to curating 100+ songs by hand.
 
 The biggest concrete improvement AI suggested was reducing Gemini API calls. My original design was calling Gemini at almost every stage, which was slow and expensive. After working through the architecture, the number of calls came down to one per request for the main flow: `synthesize_inputs` when add-ons are active, `generate_explanations` for the top 5, and `adjust_preferences` only on retry. That restructuring made the system noticeably faster and easier to reason about.
 

@@ -1,65 +1,75 @@
-# 🎧 Model Card: Music Recommender Simulation
+# Model Card: Music Viber AI (MVI)
 
-## 1. Model Name  
+## 1. Model Name
 
-Music Viber
-
----
-
-## 2. Intended Use  
-
-This system suggests up to 5 songs from an 18-song catalog based on a user's preferred genre, mood, energy, and acoustic taste. It is built for classroom exploration only and is not meant for real users or production use.
+Music Viber AI — MVI
 
 ---
 
-## 3. How the Model Works  
+## 2. Intended Use
 
-Every song gets a score based on how well it matches what the user said they want. Genre and mood are checked for an exact match and add a fixed number of points each. Energy is scored by closeness — the nearer a song's energy is to the user's target, the more points it gets. Acoustic feel, popularity, release decade, and mood tag each add smaller bonuses on top. All scores are added up, every song in the catalog is ranked from highest to lowest, and the top 5 are returned.
-
----
-
-## 4. Data  
-
-The catalog has 18 songs. The original starter file had 10, and 8 more were added to cover missing genres including hip-hop, r&b, classical, edm, country, folk, reggae, and metal. Each song has attributes for genre, mood, energy, tempo, valence, danceability, acousticness, popularity, release decade, and mood tag. The dataset is small and has no lyrics, no listening history, and no real user feedback behind any of the numbers.
+MVI recommends music based on a user's taste profile, an optional free-text description, and an optional list of artists or songs they have been listening to. It is built as a Codepath capstone project and demonstrates how LLM-based preference parsing, vector search, and a deterministic re-ranker can be combined into a working recommendation pipeline. Not intended for production use.
 
 ---
 
-## 5. Strengths  
+## 3. How the Model Works
 
-The system works best when the user's preferred genre has multiple songs in the catalog, like lofi or pop. The lofi/chill profile produced the most accurate results because genre, mood, and energy all pointed at the same songs. Every recommendation also comes with a clear breakdown of exactly why it scored the way it did, which makes the system easy to understand and debug.
-
----
-
-## 6. Limitations and Bias 
-
-The system over-prioritizes genre because it carries the highest weight. A great folk song that perfectly matches a user's target energy and mood will almost always lose to a mediocre pop song for a user who listed pop as their favorite. This is a classic filter bubble — the system never suggests anything outside the stated genre unless the catalog runs out of genre matches entirely.
-
-The catalog is also very small at 18 songs. Some genres like rock and classical only have one song each, which means users with those preferences get one genre match and then the rest of the list is just whatever has the closest energy. That does not feel like a real recommendation.
-
-The energy scoring treats all gaps linearly, but a jump from 0.8 to 0.6 feels very different to a listener than a jump from 0.3 to 0.1. The math does not capture that. The acoustic preference weight (1.0) is so low compared to everything else that it rarely changes the ranking — acoustic vs. electronic preference is effectively ignored in practice.
-
-Finally, the system has no memory. It cannot learn from skips, replays, or feedback. Every run produces the same output for the same profile, which means it cannot improve or adapt the way a real recommender would.
+Input can arrive in three forms — a structured profile, a text description, a list of artists/songs — or any combination. When add-ons are present, Gemini synthesizes all inputs into one preference dict (`genre`, `mood`, `energy`, `likes_acoustic`, `preferred_decade`, `preferred_mood_tag`). That dict is validated by guardrails, converted to a 384-dim vector by a local sentence-transformer, and queried against a Qdrant vector index of pre-embedded songs. The top 50 candidate songs are re-ranked by a weighted scorer, then Maximum Marginal Relevance (MMR) selects the final 10 by balancing relevance with diversity. Gemini writes a one-sentence explanation for each of the top 5 results. If the user is not satisfied, they can submit free-text feedback; Gemini adjusts the preference profile and the pipeline reruns once.
 
 ---
 
-## 7. Evaluation  
+## 4. Data
 
-Four user profiles were tested: High-Energy Pop (genre: pop, mood: happy, energy: 0.85), Chill Lofi (genre: lofi, mood: chill, energy: 0.38, likes_acoustic: True), Deep Intense Rock (genre: rock, mood: intense, energy: 0.92), and an edge case of a Classical fan who wants high energy (genre: classical, mood: intense, energy: 0.90, likes_acoustic: True).
-
-The pop profile surfaced Sunrise City and Gym Hero at the top, which felt correct. The lofi profile correctly ranked Library Rain and Midnight Coding highest, and the acoustic preference bonus pushed the more acoustic songs up slightly. The rock profile was the weakest result — only one rock song exists in the catalog, so after Storm Runner the rest of the list was just whatever had energy closest to 0.92, which happened to be EDM and metal songs. That does not feel like a real rock recommendation.
-
-The most interesting result was the edge case. A user who listed classical as their genre but wanted very high energy (0.90) got almost no benefit from the genre weight because Morning Sonata (the only classical song) has energy 0.18. The energy gap penalty was so large that Iron Storm, a metal song, ranked above it. This showed that the system cannot handle contradictory preferences — it just does math and picks the least-bad option.
-
-A weight shift experiment was also run: energy weight was doubled from 2.0 to 4.0 and genre weight was halved from 3.0 to 1.5. The result was more diverse top-5 lists across all profiles and the edge case felt slightly less broken. This suggests that energy is probably a stronger predictor of musical taste than genre label alone.
+The catalog is 102 songs stored in `data/new_data/songs.json`. Each song has: `title`, `artist`, `genre` (15 genres), `mood` (7 moods), `energy`, `tempo_bpm`, `valence`, `danceability`, `acousticness`, `popularity`, `release_decade`, and `mood_tag` (9 tags). The dataset was manually curated to ensure every genre, mood, and mood tag has multiple representatives so no preference hits a dead end. There are no real play counts, no user history, and no audio files — all numeric features are hand-assigned to reflect typical values for each genre.
 
 ---
 
-## 8. Future Work  
+## 5. Strengths
 
-Expanding the catalog to a few hundred songs would make a noticeable difference, especially for genres that currently have only one song. Adding tempo and valence to the scoring would also help since both affect how a song feels but are currently ignored. A feedback loop where skips and replays adjust the user's profile over time would bring the system much closer to how real recommenders actually work.
+- **Flexible input:** the system handles a structured profile, a freeform prompt, or a song list — and blends all three when all are provided. Users who cannot describe their taste in sliders can describe it in words instead.
+- **Semantic retrieval:** Qdrant finds songs that are close in the embedding space even when genre labels do not match exactly, which reduces the filter bubble effect of the original rule-based version.
+- **Explainability:** every result comes with either a Gemini-written sentence or a rule-based breakdown of which scoring factors fired, so the user always knows why a song was returned.
+- **Feedback loop:** one retry with free-text feedback is enough to meaningfully shift the results — the diff banner shows exactly what changed.
+- **Relation between genres:** Previous implementation of this project did not consider relation between genres, which is improved in this system. Gemini is sytem prompted to consider the relation between genres, which also improves the diversity.
 
 ---
 
-## 9. Personal Reflection  
+## 6. Limitations and Bias
 
-The biggest thing I learned is how much a single weight value shapes the entire output. Halving the genre weight and doubling the energy weight visibly changed which songs surfaced, and it felt more accurate in most cases. It also made it clear how filter bubbles form — the system never takes a risk on something outside the stated preference, so a user who says "pop" will mostly get pop forever. Building this made Spotify's recommendations feel less like magic and more like a very large version of the same idea.
+- **Small catalog:** 102 songs is still small. For niche genres like reggae or classical, the top 10 list will exhaust the genre and fill remaining spots with close-but-not-matching alternatives.
+- **Gemini output variability:** the same text prompt can produce slightly different preference profiles across runs because the LLM is non-deterministic. Guardrails catch hard errors but not subtle drift (e.g. `energy: 0.4` vs `energy: 0.45`).
+- **Hand-assigned features:** all song attributes were manually set, not extracted from audio. The `energy` and `acousticness` values reflect assumptions about genre conventions, not measurements. A lofi song labeled `energy: 0.3` might feel more energetic to some listeners than the number implies.
+- **One retry cap:** the feedback loop allows only one adjustment. If the retry is still wrong, the user has no further recourse except starting over.
+- **No personalisation over time:** the system has no memory between sessions. It cannot learn from which songs a user skipped or replayed.
+
+---
+
+## 7. Evaluation
+
+Four preference profiles were tested against the full pipeline:
+
+| Profile | Expected top genre | Outcome |
+|---|---|---|
+| `lofi / chill / energy 0.3 / acoustic` | lofi | Top 5 all lofi or ambient; MMR introduced one folk entry at position 8 |
+| `synthwave / focused / energy 0.75 / decade 1980` | synthwave | Top 4 synthwave; position 5 was EDM (only 4 synthwave songs in catalog) |
+| `r&b / relaxed / energy 0.5 / melancholic` | r&b | Top 3 r&b, positions 4–6 indie pop (shared emotional register) |
+| `classical / intense / energy 0.9` | classical | Guardrail warning fired; only 1 classical song exists so positions 2–10 were ambient and folk — the warning correctly told the user why |
+
+The guardrail test confirmed that non-blocking warnings are more useful than hard rejections: the classical user still got results and understood why they were imperfect.
+
+---
+
+## 8. Future Work
+
+- Expand the catalog to 1000+ songs using a Kaggle Spotify dataset and a conversion script
+- Add a `λ` slider to the UI so users can control the relevance/diversity tradeoff in MMR directly
+- Persist a lightweight session history (last 3 profiles) so the feedback loop can compare against the user's full session, not just the last request
+- Add Last.fm tag enrichment for the song list add-on so Gemini has richer context when inferring from artist names
+
+---
+
+## 9. Personal Reflection
+
+The most surprising thing was how much the two-stage pipeline (Qdrant → scorer) outperforms either stage alone. Qdrant alone returns semantically close songs but ignores the fine-grained scoring weights the user set. The scorer alone is fast but blind to relationships between genres. Together they complement each other — Qdrant narrows the field to plausible candidates and the scorer applies precise user preferences on top of that narrowed set.
+
+The feedback loop also forced a design decision I had not anticipated: how many retries to allow. Unlimited retries cause the profile to drift further from the user's original intent with each round because Gemini adjusts based on the adjusted profile, not the original. Capping at one retry was the right call — it is enough to course-correct without losing the signal.
