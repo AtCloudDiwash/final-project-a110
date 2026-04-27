@@ -330,7 +330,6 @@ These feel too slow and drifty. I want actual rock energy — guitars, drums, fo
 | Diversity | MMR over hard caps | Hard caps punish users who asked for a specific genre. MMR penalizes semantic similarity instead, so two nearly identical songs are penalized even if they have different labels. |
 | Re-ranker | `src/recommender.py` | Keeps the deterministic scorer from Project 3 as Stage 2. Vector search handles broad retrieval; the scorer handles precision on mood, energy, and genre. |
 | Feedback cap | 1 retry | Unlimited retries cause the profile to drift away from the original intent. One correction is enough. |
-| Deferred | Spotify Audio Features API | Deprecated for new app registrations in late 2024. |
 
 ---
 
